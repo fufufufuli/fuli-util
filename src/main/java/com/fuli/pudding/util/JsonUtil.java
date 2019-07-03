@@ -12,11 +12,8 @@ import java.io.IOException;
 import java.util.List;
 import java.util.Map;
 
-/**
- * Created by kuiluo on 14-6-26.
- */
 @Slf4j
-public class JSONUtil {
+public class JsonUtil {
     private static final ObjectMapper mapper = new ObjectMapper();
     private static final XmlMapper xmlMapper = new XmlMapper();
     private static final JavaTimeModule javaTimeModule = new JavaTimeModule();
@@ -44,7 +41,7 @@ public class JSONUtil {
             return mapper.writeValueAsString(obj);
         } catch (IOException e) {
             log.error("LK-PC0019a: to json exception.", e);
-            throw new JSONException("把对象转换为JSON时出错了", e);
+            throw new JsonException("把对象转换为JSON时出错了", e);
         }
     }
 
@@ -60,7 +57,7 @@ public class JSONUtil {
             return mapper.readValue(json, clazz);
         } catch (IOException e) {
             log.error("LK-PC00186: from json exception", e);
-            throw new JSONException(e.getLocalizedMessage());
+            throw new JsonException(e.getLocalizedMessage());
         }
     }
 
@@ -103,7 +100,7 @@ public class JSONUtil {
                 return value.asText();
             }
         } catch (IOException e) {
-            throw new JSONException(JSONException.GET_VALUE_ERROR, e);
+            throw new JsonException(JsonException.GET_VALUE_ERROR, e);
         }
     }
 
@@ -125,7 +122,7 @@ public class JSONUtil {
             }
             return fromJson(value.toString(), clazz);
         } catch (IOException e) {
-            throw new JSONException(JSONException.GET_VALUE_ERROR, e);
+            throw new JsonException(JsonException.GET_VALUE_ERROR, e);
         }
     }
 
@@ -144,7 +141,7 @@ public class JSONUtil {
                 return fromJson(jsonString, List.class, clazz);
             }
         } catch (IOException e) {
-            throw new JSONException(JSONException.GET_VALUE_ERROR, e);
+            throw new JsonException(JsonException.GET_VALUE_ERROR, e);
         }
     }
 
@@ -157,7 +154,7 @@ public class JSONUtil {
         try {
             return toJson(xmlMapper.readTree(xmlString));
         } catch (IOException e) {
-            throw new JSONException(JSONException.GET_VALUE_ERROR, e);
+            throw new JsonException(JsonException.GET_VALUE_ERROR, e);
         }
     }
 
@@ -172,7 +169,7 @@ public class JSONUtil {
         try {
             return YAML_MAPPER.readValue(yaml, clazz);
         } catch (IOException e) {
-            throw new JSONException(e.getLocalizedMessage());
+            throw new JsonException(e.getLocalizedMessage());
         }
     }
 
@@ -180,7 +177,7 @@ public class JSONUtil {
         try {
             return YAML_MAPPER.readValue(yamlFile, clazz);
         } catch (IOException e) {
-            throw new JSONException(e.getLocalizedMessage());
+            throw new JsonException(e.getLocalizedMessage());
         }
     }
 
@@ -195,7 +192,7 @@ public class JSONUtil {
         try {
             return YAML_MAPPER.readValue(yamlFile, javaType);
         } catch (IOException e) {
-            throw new JSONException("convert json error:" + e.getLocalizedMessage());
+            throw new JsonException("convert json error:" + e.getLocalizedMessage());
         }
     }
 
@@ -204,7 +201,7 @@ public class JSONUtil {
         try {
             return YAML_MAPPER.readValue(yaml, javaType);
         } catch (IOException e) {
-            throw new JSONException("convert json error:" + e.getLocalizedMessage());
+            throw new JsonException("convert json error:" + e.getLocalizedMessage());
         }
     }
 
@@ -212,7 +209,7 @@ public class JSONUtil {
         try {
             YAML_MAPPER.writeValue(yamlFile, clazz);
         } catch (IOException e) {
-            throw new JSONException(e.getLocalizedMessage());
+            throw new JsonException(e.getLocalizedMessage());
         }
     }
 

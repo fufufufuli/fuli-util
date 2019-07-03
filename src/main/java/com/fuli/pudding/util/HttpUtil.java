@@ -183,7 +183,7 @@ public class HttpUtil {
     }
 
     private static RequestBody bodyJson(Map<String, ?> params) {
-        String json = JSONUtil.toJson(params);
+        String json = JsonUtil.toJson(params);
         if (log.isDebugEnabled()) {
             log.debug("请求参数为{}", json);
         }
