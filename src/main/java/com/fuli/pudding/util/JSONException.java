@@ -1,18 +1,16 @@
 package com.fuli.pudding.util;
 
 /**
- * @Author: fuli
- * @Date: 2019/4/25 11:51
+ * Created by kui.luo on 14-2-20.
  */
-class JSONException extends RuntimeException {
+public final class JSONException extends RuntimeException {
+    static final String GET_VALUE_ERROR = "获取json中key值异常";
 
-    JSONException(final String message) {
+    public JSONException(final String message) {
         super(message);
     }
 
-    JSONException(final String message, final Throwable cause) {
+    public JSONException(final String message, final Throwable cause) {
         super(message, cause);
     }
 }
-
-

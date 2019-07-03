@@ -1,8 +1,9 @@
 package com.fuli.pudding.util;
 
-
+import com.google.common.base.Joiner;
+import lombok.extern.slf4j.Slf4j;
 import okhttp3.*;
-
+import okhttp3.MultipartBody.Builder;
 
 import java.io.File;
 import java.io.IOException;
@@ -10,6 +11,10 @@ import java.io.Reader;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
+/**
+ * @author fuli
+ */
+@Slf4j
 public class HttpUtil {
     private static volatile HttpUtil instance;
     private static OkHttpClient client;
@@ -18,12 +23,12 @@ public class HttpUtil {
     private static final int MAX_IDLE_CONNECTIONS = 5;
     private static final int KEEP_ALIVE_DURATION = 5;
     private static final MediaType MEDIA_JSON = MediaType.parse("application/json; charset=utf-8");
-    private static final String GET = "get";
-    private static final String POST = "post";
-    private static final String FORM = "form";
-    private static final String FILE = "file";
-    private static final String JSON = "json";
-    private static final String WEBSERVICE = "webservice";
+    public static final String GET = "get";
+    public static final String POST = "post";
+    public static final String JSON = "json";
+    public static final String FORM = "form";
+    public static final String FILE = "file";
+    public static final String WEBSERVICE = "webservice";
 
     private HttpUtil(OkHttpClient client) {
         if (client == null) {
@@ -42,7 +47,9 @@ public class HttpUtil {
     private static HttpUtil init() {
         if (instance == null) {
             synchronized (HttpUtil.class) {
-                instance = new HttpUtil(null);
+                if (instance == null) {
+                    instance = new HttpUtil(null);
+                }
             }
         }
         return instance;
@@ -56,74 +63,71 @@ public class HttpUtil {
         return HttpUtil.client;
     }
 
-    public static HttpResult callWeb(String method, String url, Map<String, ?> params, Map<String, String> headerMap) throws IOException {
+    public static HttpResult call(String method, String url, Map<String, ?> params, Map<String, String> headerMap) {
         switch (method) {
             case HttpUtil.GET:
                 return get(url, params, headerMap);
             case HttpUtil.POST:
-                return post(url, params, headerMap, JSON);
             case HttpUtil.FORM:
-                return post(url, params, headerMap, FORM);
+                return post(url, params, headerMap, method);
          /*   case HttpUtil.WEBSERVICE:
                 //todo
                 return null;*/
             default:
-                throw new ChannelException(ChannelEnum.TYPE, method);
+                throw new HttpException(HttpException.MISS_TYPE, method);
         }
     }
 
-    public static HttpResult get(String url, Map<String, ?> params) throws IOException {
+    public static HttpResult get(String url, Map<String, ?> params) {
         return doRequest(getRequest(url, params, null));
     }
 
-    public static HttpResult get(String url, Map<String, ?> params, Map<String, String> headerMap) throws IOException {
+    public static HttpResult get(String url, Map<String, ?> params, Map<String, String> headerMap) {
         return doRequest(getRequest(url, params, headerMap));
     }
 
-    public static HttpResult post(String url, Map<String, ?> params, String type) throws IOException {
-        return doRequest(postRequest(url, params, type, null));
+    public static HttpResult post(String url, Map<String, ?> params, String method) {
+        return doRequest(postRequest(url, params, method, null));
     }
 
-    public static HttpResult post(String url, Map<String, ?> params, Map<String, String> headerMap, String type) throws IOException {
-        return doRequest(postRequest(url, params, type, headerMap));
+    public static HttpResult post(String url, Map<String, ?> params, Map<String, String> headerMap, String method) {
+        return doRequest(postRequest(url, params, method, headerMap));
     }
 
     /**
      * jsonString
      */
-    public static HttpResult post(String url, String json) throws IOException {
+    public static HttpResult post(String url, String json) {
         return doRequest(postRequest(url, json, null));
     }
 
     /**
      * jsonString
      */
-    public static HttpResult post(String url, String json, Map<String, String> headerMap) throws IOException {
+    public static HttpResult post(String url, String json, Map<String, String> headerMap) {
         return doRequest(postRequest(url, json, headerMap));
     }
 
     private static Request getRequest(String url, Map<String, ?> params, Map<String, String> headerMap) {
-        StringBuilder sb = new StringBuilder(url);
+        if (log.isDebugEnabled()) {
+            log.debug("请求参数为{}", params);
+        }
         if (params != null && params.size() > 0) {
-            sb.append("?");
-            for (Map.Entry<?, ?> kv : params.entrySet()) {
-                sb.append(kv.getKey());
-                sb.append("=");
-                sb.append(kv.getValue());
-                sb.append("&");
-            }
-            sb.deleteCharAt(sb.length() - 1);
+            url += "?" + Joiner.on("&").withKeyValueSeparator("=").join(params);
+        }
+        if (log.isDebugEnabled()) {
+            log.debug("请求URL为{}", url);
         }
         if (headerMap != null && headerMap.size() > 0) {
-            return new Request.Builder().url(sb.toString()).get().headers(Headers.of(headerMap)).build();
+            return new Request.Builder().url(url).get().headers(Headers.of(headerMap)).build();
         }
-        return new Request.Builder().url(sb.toString()).get().build();
+        return new Request.Builder().url(url).get().build();
     }
 
-    private static Request postRequest(String url, Map<String, ?> params, String type, Map<String, String> headerMap) {
+    private static Request postRequest(String url, Map<String, ?> params, String method, Map<String, String> headerMap) {
         RequestBody body;
-        switch (type) {
-            case JSON:
+        switch (method) {
+            case POST:
                 body = bodyJson(params);
                 break;
             case FORM:
@@ -133,7 +137,7 @@ public class HttpUtil {
                 body = bodyFile(params);
                 break;
             default:
-                throw new ChannelException(ChannelEnum.TYPE, type);
+                throw new HttpException(HttpException.MISS_TYPE, method);
         }
         return buildRequest(url, body, headerMap);
     }
@@ -158,16 +162,16 @@ public class HttpUtil {
     }
 
     private static RequestBody bodyFile(Map<String, ?> params) {
+        Builder builder = new Builder().setType(MultipartBody.FORM);
         for (Map.Entry<String, ?> stringEntry : params.entrySet()) {
             if (stringEntry.getValue() instanceof File) {
                 File file = (File) stringEntry.getValue();
-                return new MultipartBody.Builder()
-                        .setType(MultipartBody.FORM)
-                        .addFormDataPart("file", file.getName(), RequestBody.create(MediaType.parse("image/png"), file))
-                        .build();
+                builder.addFormDataPart("file", file.getName(), RequestBody.create(MediaType.parse("multipart/form-data"), file));
+            } else {
+                builder.addFormDataPart(stringEntry.getKey(), stringEntry.getValue().toString());
             }
         }
-        return null;
+        return builder.build();
     }
 
     private static RequestBody bodyForm(Map<String, ?> params) {
@@ -179,17 +183,24 @@ public class HttpUtil {
     }
 
     private static RequestBody bodyJson(Map<String, ?> params) {
-        return RequestBody.create(MEDIA_JSON, JSONUtil.toJson(params));
+        String json = JSONUtil.toJson(params);
+        if (log.isDebugEnabled()) {
+            log.debug("请求参数为{}", json);
+        }
+        return RequestBody.create(MEDIA_JSON, json);
     }
 
-    private static HttpResult doRequest(final Request request) throws IOException {
+    private static HttpResult doRequest(final Request request) {
         init();
-        Response response = client.newCall(request).execute();
-        return responseResult(response);
+        try {
+            return responseResult(client.newCall(request).execute());
+        } catch (IOException e) {
+            throw new HttpException(e);
+        }
     }
 
-    private static HttpResult responseResult(Response response) throws IOException {
-        if (response.isSuccessful() && response.body() != null) {
+    private static HttpResult responseResult(Response response) {
+        if (response.body() != null) {
             try (Reader reader = response.body().charStream()) {
                 int capacity = (int) response.body().contentLength();
                 if (capacity < 0) {
@@ -202,9 +213,11 @@ public class HttpUtil {
                     buffer.append(tmp, 0, l);
                 }
                 return new HttpResult(response.code(), buffer.toString());
+            } catch (IOException e) {
+                throw new HttpException(e);
             }
-        } else return new HttpResult(response.code(), response.message());
+        } else {
+            return new HttpResult(response.code(), response.message());
+        }
     }
-
-
 }
