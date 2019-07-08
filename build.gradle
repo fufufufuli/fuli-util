@@ -40,7 +40,5 @@ dependencies {
     testCompile "org.mockito:mockito-core:2.27.0"
     testCompile("org.junit.jupiter:junit-jupiter-api:${junit_version}")
     testRuntime("org.junit.jupiter:junit-jupiter-engine:${junit_version}")
-    testImplementation "org.junit.jupiter:junit-jupiter-api:${junit_version}"
-    testRuntimeOnly "org.junit.jupiter:junit-jupiter-engine:${junit_version}"
 
 }
