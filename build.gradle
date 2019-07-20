@@ -2,7 +2,7 @@ plugins {
     id 'java'
     id "io.spring.dependency-management" version "1.0.6.RELEASE"
 }
-apply plugin: 'io.spring.dependency-management'
+apply plugin: 'java'
 group 'com.fuli'
 version '1.0-SNAPSHOT'
 
@@ -33,7 +33,7 @@ dependencies {
     compile "org.projectlombok:lombok:${lombok_version}"
     compile 'org.apache.commons:commons-lang3:3.9'
     compile group: 'org.slf4j', name: 'slf4j-api', version: '1.7.25'
-    compile "com.google.guava:${google_guava_version}"
+    //compile "com.google.guava:${google_guava_version}"
 
     compile 'org.reflections:reflections:0.9.11'
     //test

@@ -1,6 +1,5 @@
 package com.fuli.pudding.util;
 
-import com.google.common.base.Joiner;
 import lombok.extern.slf4j.Slf4j;
 import okhttp3.*;
 import okhttp3.MultipartBody.Builder;
@@ -109,32 +108,28 @@ public class HttpUtil {
     }
 
     private static Request getRequest(String url, Map<String, ?> params, Map<String, String> headerMap) {
+        url += "?"+ CommonUtil.splice(params,"&","=");
         if (log.isDebugEnabled()) {
-            log.debug("请求参数为{}", params);
+            log.debug("请求参数为,url地址{},{}", params, url);
         }
-        if (params != null && params.size() > 0) {
-            url += "?" + Joiner.on("&").withKeyValueSeparator("=").join(params);
-        }
-        if (log.isDebugEnabled()) {
-            log.debug("请求URL为{}", url);
-        }
+        Request.Builder builder = new Request.Builder().url(url).get();
         if (headerMap != null && headerMap.size() > 0) {
-            return new Request.Builder().url(url).get().headers(Headers.of(headerMap)).build();
+            builder.headers(Headers.of(headerMap));
         }
-        return new Request.Builder().url(url).get().build();
+        return builder.build();
     }
 
     private static Request postRequest(String url, Map<String, ?> params, String method, Map<String, String> headerMap) {
         RequestBody body;
         switch (method) {
             case POST:
-                body = bodyJson(params);
-                break;
             case FORM:
-                body = bodyForm(params);
-                break;
             case FILE:
-                body = bodyFile(params);
+                String json = JsonUtil.toJson(params);
+                if (log.isDebugEnabled()) {
+                    log.debug("请求参数为{}", json);
+                }
+                body = RequestBody.create(json, MEDIA_JSON);
                 break;
             default:
                 throw new HttpException(HttpException.MISS_TYPE, method);
@@ -143,42 +138,37 @@ public class HttpUtil {
     }
 
     private static Request buildRequest(String url, RequestBody body, Map<String, String> headerMap) {
-        if (body != null && headerMap != null) {
-            return new Request.Builder().url(url).headers(Headers.of(headerMap)).post(body).build();
-        } else {
-            if (body != null) {
-                return new Request.Builder().url(url).post(body).build();
-            }
-            if (headerMap != null) {
-                return new Request.Builder().url(url).headers(Headers.of(headerMap)).build();
-            }
+        Request.Builder builder = new Request.Builder().url(url);
+        if (headerMap != null) {
+            builder.headers(Headers.of(headerMap));
         }
-        return new Request.Builder().url(url).build();
+        if (body != null) {
+            builder.post(body);
+        }
+        return builder.build();
     }
 
     private static Request postRequest(String url, String json, Map<String, String> headerMap) {
-        RequestBody body = RequestBody.create(MEDIA_JSON, json);
+        RequestBody body = RequestBody.create(json, MEDIA_JSON);
         return buildRequest(url, body, headerMap);
     }
 
     private static RequestBody bodyFile(Map<String, ?> params) {
         Builder builder = new Builder().setType(MultipartBody.FORM);
-        for (Map.Entry<String, ?> stringEntry : params.entrySet()) {
-            if (stringEntry.getValue() instanceof File) {
-                File file = (File) stringEntry.getValue();
-                builder.addFormDataPart("file", file.getName(), RequestBody.create(MediaType.parse("multipart/form-data"), file));
+        params.forEach((k, v) -> {
+            if (v instanceof File) {
+                File file = (File) v;
+                builder.addFormDataPart("file", file.getName(), RequestBody.create(file, MediaType.parse("multipart/form-data")));
             } else {
-                builder.addFormDataPart(stringEntry.getKey(), stringEntry.getValue().toString());
+                builder.addFormDataPart(k, v.toString());
             }
-        }
+        });
         return builder.build();
     }
 
     private static RequestBody bodyForm(Map<String, ?> params) {
         FormBody.Builder builder = new FormBody.Builder();
-        for (Map.Entry<String, ?> stringEntry : params.entrySet()) {
-            builder.add(stringEntry.getKey(), stringEntry.getValue().toString());
-        }
+        params.forEach((k, v) -> builder.add(k, v.toString()));
         return builder.build();
     }
 
@@ -187,7 +177,7 @@ public class HttpUtil {
         if (log.isDebugEnabled()) {
             log.debug("请求参数为{}", json);
         }
-        return RequestBody.create(MEDIA_JSON, json);
+        return RequestBody.create(json, MEDIA_JSON);
     }
 
     private static HttpResult doRequest(final Request request) {
@@ -206,18 +196,17 @@ public class HttpUtil {
                 if (capacity < 0) {
                     capacity = 4096;
                 }
-                StringBuilder buffer = new StringBuilder(capacity);
+                StringBuilder sb = new StringBuilder(capacity);
                 char[] tmp = new char[1024];
                 int l;
                 while ((l = reader.read(tmp)) != -1) {
-                    buffer.append(tmp, 0, l);
+                    sb.append(tmp, 0, l);
                 }
-                return new HttpResult(response.code(), buffer.toString());
+                return new HttpResult(response.code(), sb.toString());
             } catch (IOException e) {
                 throw new HttpException(e);
             }
-        } else {
-            return new HttpResult(response.code(), response.message());
         }
+        return new HttpResult(response.code(), response.message());
     }
 }

@@ -20,7 +20,7 @@ public class MockBeanUtil {
             for (Method method : methods) {
                 String name = method.getName();
                 if (name.contains("set")) {
-                    String fieldName = toLowerCaseFirstOne(name.substring(3));
+                    String fieldName = CommonUtil.toLowerCaseFirstOne(name.substring(3));
                     Field field = clz.getDeclaredField(fieldName);
                     method.invoke(t, makeFiled(fieldName, field, method.getParameterTypes()[0]));
                 }
@@ -87,15 +87,5 @@ public class MockBeanUtil {
         return (T) obj;
     }
 
-    /**
-     * 方法首字母小写
-     * @param str
-     * @return
-     */
-    public static String toLowerCaseFirstOne(String str) {
-        if (Character.isLowerCase(str.charAt(0))) {
-            return str;
-        }
-        return Character.toLowerCase(str.charAt(0)) + str.substring(1);
-    }
+
 }
