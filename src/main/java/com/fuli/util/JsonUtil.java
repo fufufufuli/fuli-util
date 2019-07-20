@@ -23,16 +23,13 @@ public class JsonUtil {
     private static final ObjectMapper YAML_MAPPER = new ObjectMapper(new YAMLFactory());
 
     static {
-        //todo 过时方法替换
-        OBJECT_MAPPER.enable(SerializationFeature.WRITE_NULL_MAP_VALUES);
         OBJECT_MAPPER.enable(SerializationFeature.ORDER_MAP_ENTRIES_BY_KEYS);
         OBJECT_MAPPER.registerModule(JAVA_TIME_MODULE);
         OBJECT_MAPPER.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
 
-        //todo 过时方法替换
-        XML_MAPPER.enable(SerializationFeature.WRITE_NULL_MAP_VALUES);
         XML_MAPPER.enable(SerializationFeature.ORDER_MAP_ENTRIES_BY_KEYS);
         XML_MAPPER.registerModule(JAVA_TIME_MODULE);
+
         YAML_MAPPER.findAndRegisterModules();
     }
 
