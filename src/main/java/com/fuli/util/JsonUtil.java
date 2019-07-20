@@ -1,4 +1,4 @@
-package com.fuli.pudding.util;
+package com.fuli.util;
 
 import com.fasterxml.jackson.databind.*;
 import com.fasterxml.jackson.dataformat.xml.XmlMapper;

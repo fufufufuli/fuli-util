@@ -1,4 +1,4 @@
-package com.fuli.pudding.util;
+package com.fuli.util;
 
 import lombok.extern.slf4j.Slf4j;
 import okhttp3.*;

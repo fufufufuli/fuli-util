@@ -1,4 +1,4 @@
-package com.fuli.pudding.util;
+package com.fuli.util;
 
 import java.util.Iterator;
 import java.util.Map;
