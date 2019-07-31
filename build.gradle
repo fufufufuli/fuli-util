@@ -15,7 +15,7 @@ def fasterxml_jackson_version='2.9.9'
 def google_guava_version='28.0-jre'
 def okhttp_version='4.0.0'
 def lombok_version='1.18.6'
-def junit_version='5.5.0'
+def junit_version='5.5.1'
 def junit_launcher_version='1.5.1'
 dependencies {
     //json
@@ -43,6 +43,7 @@ dependencies {
     testCompile("org.junit.jupiter:junit-jupiter-engine:${junit_version}")
     testCompile("org.junit.vintage:junit-vintage-engine:${junit_version}")
     testCompile("org.junit.platform:junit-platform-launcher:${junit_launcher_version}")
+    testCompile("org.junit.platform:junit-platform-runner:${junit_launcher_version}")
 
 
 }
