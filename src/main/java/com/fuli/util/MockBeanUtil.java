@@ -1,8 +1,9 @@
 package com.fuli.util;
 
+import com.google.common.collect.Maps;
+
 import java.lang.reflect.*;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -60,7 +61,7 @@ public class MockBeanUtil {
             objects[1] = param2;
             obj = objects;
         } else if (Map.class.equals(clz) || field.getType().isPrimitive()) {
-            Map<Object, Object> map = new HashMap<>();
+            Map<Object, Object> map = Maps.newHashMap();
             map.put("key", "value");
             obj = map;
         } else if (List.class.equals(clz)) {

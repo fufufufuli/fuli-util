@@ -29,12 +29,12 @@ public class MapUtil {
      * @param clazz   JavaBean实例对象
      * @param mapList Map数据集对象
      */
-    public static <T> List<T> map2Java(Class<T> clazz, List<Map> mapList) {
+    public static <T> List<T> toBean(Class<T> clazz, List<Map> mapList) {
         if (mapList == null || mapList.isEmpty()) {
             return null;
         }
         List<T> objectList = new ArrayList<>();
-        mapList.forEach(map -> objectList.add(map2Java(clazz, map)));
+        mapList.forEach(map -> objectList.add(toBean(clazz, map)));
         return objectList;
     }
 
@@ -43,7 +43,7 @@ public class MapUtil {
      *
      * @param map Map对象
      */
-    public static <T> T map2Java(Class<T> clazz, Map map) {
+    public static <T> T toBean(Class<T> clazz, Map map) {
         try {
             T obj = clazz.newInstance();
             doCopy(map, obj);
@@ -82,9 +82,9 @@ public class MapUtil {
     /**
      * JavaBean对象转化成Map对象
      */
-    public static Map<String, Object> java2Map(Object javaBean) {
+    public static Map<String, Object> toMap(Object javaBean) {
         Map<String, Object> map = Maps.newHashMap();
-        toMap(map, javaBean, false);
+        buildMap(map, javaBean, false);
         return map;
     }
 
@@ -93,12 +93,12 @@ public class MapUtil {
      */
     public static Map<String, String> java2MapStr(Object javaBean) {
         Map<String, String> map = Maps.newHashMap();
-        toMap(map, javaBean, true);
+        buildMap(map, javaBean, true);
         return map;
 
     }
 
-    private static void toMap(Map map, Object javaBean, boolean isString) {
+    private static void buildMap(Map map, Object javaBean, boolean isString) {
         try {
             PropertyDescriptor[] propertyDescriptors = getPropertyDescriptor(javaBean.getClass());
             if (isNotEmpty(propertyDescriptors)) {
@@ -118,14 +118,14 @@ public class MapUtil {
      * 将多个map封装到一个map中
      */
     public static <K, V> Map<K, V> merge(List<Map<K, V>> maps) {
-        Map<K, V> map = new HashMap<>();
+        Map<K, V> map = Maps.newHashMap();
         maps.forEach(m -> m.keySet().forEach(s -> map.put(s, m.get(s))));
         return map;
     }
 
 
     public static Map<String, String> trans(Map<String, ?> map) {
-        Map<String, String> result = new HashMap<>(16);
+        Map<String, String> result = Maps.newHashMap();
         map.forEach((k, v) -> result.put(k, v == null ? null : v.toString()));
         return result;
     }
