@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.*;
 import com.fasterxml.jackson.dataformat.xml.XmlMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 
 import java.io.IOException;
@@ -70,7 +71,7 @@ public class JsonUtil {
         try {
             return OBJECT_MAPPER.readValue(jsonStr, javaType);
         } catch (IOException e) {
-            throw new RuntimeException("convert json error:" + e.getLocalizedMessage());
+            throw new JsonException("convert json error:", e);
         }
     }
 
@@ -130,7 +131,7 @@ public class JsonUtil {
         }
         try {
             List<JsonNode> values = OBJECT_MAPPER.readTree(jsonString).findValues(key);
-            if (values == null) {
+            if (CollectionUtils.isEmpty(values)) {
                 return null;
             }
             return fromJson(values.toString(), List.class, clazz);
