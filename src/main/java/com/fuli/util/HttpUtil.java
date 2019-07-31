@@ -120,13 +120,13 @@ public class HttpUtil {
         RequestBody body;
         switch (method) {
             case POST:
+                body = bodyJson(params);
+                break;
             case FORM:
+                body = bodyForm(params);
+                break;
             case FILE:
-                String json = JsonUtil.toJson(params);
-                if (log.isDebugEnabled()) {
-                    log.debug("请求参数为{}", json);
-                }
-                body = RequestBody.create(json, MEDIA_JSON);
+                body = bodyFile(params);
                 break;
             default:
                 throw new HttpException(HttpException.MISS_TYPE, method);
