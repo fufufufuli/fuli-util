@@ -33,8 +33,8 @@ dependencies {
     compile "org.projectlombok:lombok:${lombok_version}"
     compile 'org.apache.commons:commons-lang3:3.9'
     compile group: 'org.slf4j', name: 'slf4j-api', version: '1.7.25'
-    //compile "com.google.guava:${google_guava_version}"
-
+    compile "com.google.guava:${google_guava_version}"
+    compile group: 'org.apache.commons', name: 'commons-collections4', version: '4.4'
     compile 'org.reflections:reflections:0.9.11'
     //test
     testCompile "org.mockito:mockito-core:2.27.0"

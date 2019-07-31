@@ -1,5 +1,6 @@
 package com.fuli.util;
 
+import com.google.common.base.Joiner;
 import lombok.extern.slf4j.Slf4j;
 import okhttp3.*;
 import okhttp3.MultipartBody.Builder;
@@ -93,27 +94,23 @@ public class HttpUtil {
         return doRequest(postRequest(url, params, method, headerMap));
     }
 
-    /**
-     * jsonString
-     */
     public static HttpResult post(String url, String json) {
         return doRequest(postRequest(url, json, null));
     }
 
-    /**
-     * jsonString
-     */
     public static HttpResult post(String url, String json, Map<String, String> headerMap) {
         return doRequest(postRequest(url, json, headerMap));
     }
 
     private static Request getRequest(String url, Map<String, ?> params, Map<String, String> headerMap) {
-        url += "?"+ CommonUtil.splice(params,"&","=");
+        if (MapUtil.isNotEmpty(params)) {
+            url += "?" + Joiner.on("&").withKeyValueSeparator("=").join(params);
+        }
         if (log.isDebugEnabled()) {
             log.debug("请求参数为,url地址{},{}", params, url);
         }
         Request.Builder builder = new Request.Builder().url(url).get();
-        if (headerMap != null && headerMap.size() > 0) {
+        if (MapUtil.isNotEmpty(headerMap)) {
             builder.headers(Headers.of(headerMap));
         }
         return builder.build();
@@ -139,7 +136,7 @@ public class HttpUtil {
 
     private static Request buildRequest(String url, RequestBody body, Map<String, String> headerMap) {
         Request.Builder builder = new Request.Builder().url(url);
-        if (headerMap != null) {
+        if (MapUtil.isNotEmpty(headerMap)) {
             builder.headers(Headers.of(headerMap));
         }
         if (body != null) {
@@ -191,14 +188,11 @@ public class HttpUtil {
 
     private static HttpResult responseResult(Response response) {
         if (response.body() != null) {
+            int capacity = (int) response.body().contentLength();
+            StringBuilder sb = new StringBuilder(capacity<0?4096:capacity);
+            char[] tmp = new char[1024];
+            int l;
             try (Reader reader = response.body().charStream()) {
-                int capacity = (int) response.body().contentLength();
-                if (capacity < 0) {
-                    capacity = 4096;
-                }
-                StringBuilder sb = new StringBuilder(capacity);
-                char[] tmp = new char[1024];
-                int l;
                 while ((l = reader.read(tmp)) != -1) {
                     sb.append(tmp, 0, l);
                 }

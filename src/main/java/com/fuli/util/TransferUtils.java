@@ -39,10 +39,8 @@ public class TransferUtils {
             return null;
         } else if (obj instanceof Integer) {
             return (Integer) obj;
-        } else if (obj instanceof String) {
-            if (StringUtils.isNotBlank((String) obj)) {
-                return Integer.valueOf((String) obj);
-            }
+        } else if (obj instanceof String && StringUtils.isNotBlank((String) obj)) {
+            return Integer.valueOf((String) obj);
         }
         throw new TransferException(obj.getClass().getSimpleName());
     }
