@@ -39,10 +39,10 @@ dependencies {
     compile 'org.reflections:reflections:0.9.11'
     //test
     testCompile "org.mockito:mockito-core:2.27.0"
-   /* testCompile("org.junit.jupiter:junit-jupiter-api:${junit_version}")
+    testCompile("org.junit.jupiter:junit-jupiter-api:${junit_version}")
     testCompile("org.junit.jupiter:junit-jupiter-engine:${junit_version}")
     testCompile("org.junit.vintage:junit-vintage-engine:${junit_version}")
-    testCompile("org.junit.platform:junit-platform-launcher:${junit_launcher_version}")*/
+    testCompile("org.junit.platform:junit-platform-launcher:${junit_launcher_version}")
 
 
 }
