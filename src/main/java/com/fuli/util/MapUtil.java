@@ -8,7 +8,6 @@ import java.beans.IntrospectionException;
 import java.beans.Introspector;
 import java.beans.PropertyDescriptor;
 import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
 import java.util.*;
 
 /**
@@ -45,7 +44,6 @@ public class MapUtil {
      * @param map Map对象
      */
     public static <T> T map2Java(Class<T> clazz, Map map) {
-        // 创建 JavaBean 对象
         try {
             T obj = clazz.newInstance();
             doCopy(map, obj);
@@ -57,17 +55,11 @@ public class MapUtil {
 
     private static <T> void doCopy(Map map, T obj) {
         try {
-            // 获取javaBean属性
-            BeanInfo beanInfo = Introspector.getBeanInfo(obj.getClass());
-            PropertyDescriptor[] propertyDescriptors = beanInfo.getPropertyDescriptors();
+            PropertyDescriptor[] propertyDescriptors = getPropertyDescriptor(obj.getClass());
             if (isNotEmpty(propertyDescriptors)) {
-                String propertyName; // javaBean属性名
-                Object propertyValue; // javaBean属性值
                 for (PropertyDescriptor pd : propertyDescriptors) {
-                    propertyName = pd.getName();
-                    if (map.containsKey(propertyName)) {
-                        propertyValue = map.get(propertyName);
-                        pd.getWriteMethod().invoke(obj, propertyValue);
+                    if (map.containsKey(pd.getName())) {
+                        pd.getWriteMethod().invoke(obj, map.get(pd.getName()));
                     }
                 }
             }
@@ -108,24 +100,12 @@ public class MapUtil {
 
     private static void toMap(Map map, Object javaBean, boolean isString) {
         try {
-            BeanInfo beanInfo = Introspector.getBeanInfo(javaBean.getClass());
-            PropertyDescriptor[] propertyDescriptors = beanInfo.getPropertyDescriptors();
+            PropertyDescriptor[] propertyDescriptors = getPropertyDescriptor(javaBean.getClass());
             if (isNotEmpty(propertyDescriptors)) {
-                // javaBean属性名
-                String propertyName;
-                // javaBean属性值
-                Object propertyValue;
-                Method readMethod;
                 for (PropertyDescriptor pd : propertyDescriptors) {
-                    propertyName = pd.getName();
-                    if (!"class".equals(propertyName)) {
-                        readMethod = pd.getReadMethod();
-                        if (isString) {
-                            propertyValue = String.valueOf(readMethod.invoke(javaBean));
-                        } else {
-                            propertyValue = readMethod.invoke(javaBean);
-                        }
-                        map.put(propertyName, propertyValue);
+                    if (!"class".equals(pd.getName())) {
+                        map.put(pd.getName(), isString ? String.valueOf(pd.getReadMethod().invoke(javaBean))
+                                : pd.getReadMethod().invoke(javaBean));
                     }
                 }
             }
@@ -148,6 +128,12 @@ public class MapUtil {
         Map<String, String> result = new HashMap<>(16);
         map.forEach((k, v) -> result.put(k, v == null ? null : v.toString()));
         return result;
+    }
+
+
+    private static PropertyDescriptor[] getPropertyDescriptor(Class clazz) throws IntrospectionException {
+        BeanInfo beanInfo = Introspector.getBeanInfo(clazz);
+        return beanInfo.getPropertyDescriptors();
     }
 
 }
