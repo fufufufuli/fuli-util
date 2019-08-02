@@ -23,12 +23,6 @@ public class MapUtil {
         return !isEmpty(map);
     }
 
-    /**
-     * Map集合对象转化成 JavaBean集合对象
-     *
-     * @param clazz   JavaBean实例对象
-     * @param mapList Map数据集对象
-     */
     public static <T> List<T> toBean(Class<T> clazz, List<Map> mapList) {
         if (mapList == null || mapList.isEmpty()) {
             return null;
@@ -38,11 +32,6 @@ public class MapUtil {
         return objectList;
     }
 
-    /**
-     * Map对象转化成 JavaBean对象
-     *
-     * @param map Map对象
-     */
     public static <T> T toBean(Class<T> clazz, Map map) {
         try {
             T obj = clazz.newInstance();
@@ -79,9 +68,6 @@ public class MapUtil {
         return propertyDescriptors != null && propertyDescriptors.length > 0;
     }
 
-    /**
-     * JavaBean对象转化成Map对象
-     */
     public static Map<String, Object> toMap(Object javaBean) {
         Map<String, Object> map = Maps.newHashMap();
         buildMap(map, javaBean, false);
@@ -114,9 +100,6 @@ public class MapUtil {
         }
     }
 
-    /**
-     * 将多个map封装到一个map中
-     */
     public static <K, V> Map<K, V> merge(List<Map<K, V>> maps) {
         Map<K, V> map = Maps.newHashMap();
         maps.forEach(m -> m.keySet().forEach(s -> map.put(s, m.get(s))));

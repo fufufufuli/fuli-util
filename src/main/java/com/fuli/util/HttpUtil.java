@@ -107,7 +107,7 @@ public class HttpUtil {
             url += "?" + Joiner.on("&").withKeyValueSeparator("=").join(params);
         }
         if (log.isDebugEnabled()) {
-            log.debug("请求参数为,url地址{},{}", params, url);
+            log.debug("paras:,url:{},{}", params, url);
         }
         Request.Builder builder = new Request.Builder().url(url).get();
         if (MapUtil.isNotEmpty(headerMap)) {
