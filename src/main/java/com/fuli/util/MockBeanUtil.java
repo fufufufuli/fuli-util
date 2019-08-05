@@ -1,6 +1,5 @@
 package com.fuli.util;
 
-import java.lang.reflect.*;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -16,7 +15,7 @@ public class MockBeanUtil {
     public static <T> T mockBean(Class<T> clz) {
         Method[] methods = clz.getDeclaredMethods();
         try {
-            T t = clz.newInstance();
+            T t = clz.getDeclaredConstructor().newInstance();
             for (Method method : methods) {
                 String name = method.getName();
                 if (name.contains("set")) {
