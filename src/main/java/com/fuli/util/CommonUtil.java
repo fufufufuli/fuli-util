@@ -9,7 +9,7 @@ import java.util.Map;
 public class CommonUtil {
     public static String splice(Map<String, ?> params, String on, String keyValueSeparator) {
         StringBuilder sb = new StringBuilder();
-        if (params != null && !params.isEmpty()) {
+        if (MapUtil.isNotEmpty(params)) {
             Iterator<? extends Map.Entry<String, ?>> iterator = params.entrySet().iterator();
             Map.Entry<String, ?> next;
             while (iterator.hasNext()) {

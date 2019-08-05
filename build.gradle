@@ -1,6 +1,6 @@
 plugins {
     id 'java'
-    id "io.spring.dependency-management" version "1.0.6.RELEASE"
+    id "io.spring.dependency-management" version "1.0.8.RELEASE"
 }
 apply plugin: 'java'
 group 'com.fuli'
@@ -15,7 +15,8 @@ def fasterxml_jackson_version='2.9.9'
 def google_guava_version='28.0-jre'
 def okhttp_version='4.0.0'
 def lombok_version='1.18.6'
-def junit_version='5.5.0'
+def junit_version='5.5.1'
+def junit_launcher_version='1.5.1'
 dependencies {
     //json
     compile "com.fasterxml.jackson.datatype:jackson-datatype-hppc"
@@ -33,12 +34,26 @@ dependencies {
     compile "org.projectlombok:lombok:${lombok_version}"
     compile 'org.apache.commons:commons-lang3:3.9'
     compile group: 'org.slf4j', name: 'slf4j-api', version: '1.7.25'
-    //compile "com.google.guava:${google_guava_version}"
-
+    compile "com.google.guava:guava:${google_guava_version}"
+    compile group: 'org.apache.commons', name: 'commons-collections4', version: '4.4'
     compile 'org.reflections:reflections:0.9.11'
     //test
     testCompile "org.mockito:mockito-core:2.27.0"
     testCompile("org.junit.jupiter:junit-jupiter-api:${junit_version}")
-    testRuntime("org.junit.jupiter:junit-jupiter-engine:${junit_version}")
+    testCompile("org.junit.jupiter:junit-jupiter-engine:${junit_version}")
+    testCompile("org.junit.vintage:junit-vintage-engine:${junit_version}")
+    testCompile("org.junit.platform:junit-platform-launcher:${junit_launcher_version}")
+    testCompile("org.junit.platform:junit-platform-runner:${junit_launcher_version}")
 
+
+}
+subprojects {
+    version = "1.0-SNAPSHOT"
+    wrapper {
+        gradleVersion = '5.5.1'
+    }
+
+    tasks.withType(JavaCompile) {
+        options.encoding = 'UTF-8'
+    }
 }
