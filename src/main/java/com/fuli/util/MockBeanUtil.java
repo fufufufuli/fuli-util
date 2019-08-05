@@ -1,8 +1,9 @@
 package com.fuli.util;
 
+import com.google.common.collect.Maps;
+
 import java.lang.reflect.*;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
