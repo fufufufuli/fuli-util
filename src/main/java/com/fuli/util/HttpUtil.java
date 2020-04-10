@@ -16,7 +16,6 @@ import java.util.concurrent.TimeUnit;
  */
 @Slf4j
 public class HttpUtil {
-    private static volatile HttpUtil instance;
     private static OkHttpClient client;
     private static final int CONNECT_TIMEOUT = 10;
     private static final int READ_TIMEOUT = 20;
@@ -30,52 +29,30 @@ public class HttpUtil {
     public static final String FILE = "file";
     public static final String WEBSERVICE = "webservice";
 
-    private HttpUtil(OkHttpClient client) {
-        if (client == null) {
-            ConnectionPool pool = new ConnectionPool(MAX_IDLE_CONNECTIONS, KEEP_ALIVE_DURATION, TimeUnit.MINUTES);
-            HttpUtil.client = new OkHttpClient.Builder()
-                    .connectTimeout(CONNECT_TIMEOUT, TimeUnit.SECONDS)
-                    .readTimeout(READ_TIMEOUT, TimeUnit.SECONDS)
-                    .retryOnConnectionFailure(true)
-                    .connectionPool(pool)
-                    .build();
-        } else {
-            HttpUtil.client = client;
-        }
+    static {
+        ConnectionPool pool = new ConnectionPool(MAX_IDLE_CONNECTIONS, KEEP_ALIVE_DURATION, TimeUnit.MINUTES);
+        HttpUtil.client = new OkHttpClient.Builder()
+                .connectTimeout(CONNECT_TIMEOUT, TimeUnit.SECONDS)
+                .readTimeout(READ_TIMEOUT, TimeUnit.SECONDS)
+                .retryOnConnectionFailure(true)
+                .connectionPool(pool)
+                .build();
     }
 
-    private static HttpUtil init() {
-        if (instance == null) {
-            synchronized (HttpUtil.class) {
-                if (instance == null) {
-                    instance = new HttpUtil(null);
-                }
-            }
-        }
-        return instance;
-    }
-
-    public static HttpUtil getInstance() {
-        return init();
-    }
 
     public static OkHttpClient getOkHttpClient() {
         return HttpUtil.client;
     }
 
     public static HttpResult call(String method, String url, Map<String, ?> params, Map<String, String> headerMap) {
-        switch (method) {
-            case HttpUtil.GET:
-                return get(url, params, headerMap);
-            case HttpUtil.POST:
-            case HttpUtil.FORM:
-                return post(url, params, headerMap, method);
-         /*   case HttpUtil.WEBSERVICE:
+        return switch (method) {
+            case HttpUtil.GET -> get(url, params, headerMap);
+            case HttpUtil.POST, HttpUtil.FORM -> post(url, params, headerMap, method);
+                    /*   case HttpUtil.WEBSERVICE:
                 //todo
                 return null;*/
-            default:
-                throw new HttpException(HttpException.MISS_TYPE, method);
-        }
+            default -> throw new HttpException(HttpException.MISS_TYPE, method);
+        };
     }
 
     public static HttpResult get(String url, Map<String, ?> params) {
@@ -103,40 +80,32 @@ public class HttpUtil {
     }
 
     private static Request getRequest(String url, Map<String, ?> params, Map<String, String> headerMap) {
-        if (MapUtil.isNotEmpty(params)) {
+        if (CommonUtil.isNotEmpty(params)) {
             url += "?" + Joiner.on("&").withKeyValueSeparator("=").join(params);
         }
         if (log.isDebugEnabled()) {
             log.debug("paras:,url:{},{}", params, url);
         }
         Request.Builder builder = new Request.Builder().url(url).get();
-        if (MapUtil.isNotEmpty(headerMap)) {
+        if (CommonUtil.isNotEmpty(headerMap)) {
             builder.headers(Headers.of(headerMap));
         }
         return builder.build();
     }
 
     private static Request postRequest(String url, Map<String, ?> params, String method, Map<String, String> headerMap) {
-        RequestBody body;
-        switch (method) {
-            case POST:
-                body = bodyJson(params);
-                break;
-            case FORM:
-                body = bodyForm(params);
-                break;
-            case FILE:
-                body = bodyFile(params);
-                break;
-            default:
-                throw new HttpException(HttpException.MISS_TYPE, method);
-        }
+        RequestBody body = switch (method) {
+            case POST -> bodyJson(params);
+            case FORM -> bodyForm(params);
+            case FILE -> bodyFile(params);
+            default -> throw new HttpException(HttpException.MISS_TYPE, method);
+        };
         return buildRequest(url, body, headerMap);
     }
 
     private static Request buildRequest(String url, RequestBody body, Map<String, String> headerMap) {
         Request.Builder builder = new Request.Builder().url(url);
-        if (MapUtil.isNotEmpty(headerMap)) {
+        if (CommonUtil.isNotEmpty(headerMap)) {
             builder.headers(Headers.of(headerMap));
         }
         if (body != null) {
@@ -153,8 +122,7 @@ public class HttpUtil {
     private static RequestBody bodyFile(Map<String, ?> params) {
         Builder builder = new Builder().setType(MultipartBody.FORM);
         params.forEach((k, v) -> {
-            if (v instanceof File) {
-                File file = (File) v;
+            if (v instanceof File file) {
                 builder.addFormDataPart("file", file.getName(), RequestBody.create(file, MediaType.parse("multipart/form-data")));
             } else {
                 builder.addFormDataPart(k, v.toString());
@@ -178,7 +146,6 @@ public class HttpUtil {
     }
 
     private static HttpResult doRequest(final Request request) {
-        init();
         try {
             return responseResult(client.newCall(request).execute());
         } catch (IOException e) {
@@ -189,7 +156,7 @@ public class HttpUtil {
     private static HttpResult responseResult(Response response) {
         if (response.body() != null) {
             int capacity = (int) response.body().contentLength();
-            StringBuilder sb = new StringBuilder(capacity<0?4096:capacity);
+            StringBuilder sb = new StringBuilder(capacity < 0 ? 4096 : capacity);
             char[] tmp = new char[1024];
             int l;
             try (Reader reader = response.body().charStream()) {

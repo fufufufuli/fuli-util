@@ -1,54 +1,52 @@
 package com.fuli.util;
 
 import com.google.common.base.Preconditions;
+import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 
-import java.beans.BeanInfo;
 import java.beans.IntrospectionException;
 import java.beans.Introspector;
 import java.beans.PropertyDescriptor;
 import java.lang.reflect.InvocationTargetException;
-import java.util.*;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
 
 /**
  * @author fuli
  */
 public class MapUtil {
 
-    public static boolean isEmpty(Map map) {
-        return map == null || map.isEmpty();
+    public static <T> List<T> toBean(Class<T> clazz, List<Map<String, ?>> data) {
+        Preconditions.checkArgument(CommonUtil.isEmpty(data));
+        List<T> target = Lists.newArrayList();
+        data.forEach(map -> target.add(toBean(clazz, map)));
+        return target;
     }
 
-    public static boolean isNotEmpty(Map map) {
-        return !isEmpty(map);
+    public static <T> T toBean(Class<T> clazz, Map<String, ?> map) {
+        T t = newInstance(clazz);
+        doCopy(map, t);
+        return t;
     }
 
-    public static <T> List<T> toBean(Class<T> clazz, List<Map> mapList) {
-        if (mapList == null || mapList.isEmpty()) {
-            return null;
-        }
-        List<T> objectList = new ArrayList<>();
-        mapList.forEach(map -> objectList.add(toBean(clazz, map)));
-        return objectList;
-    }
-
-    public static <T> T toBean(Class<T> clazz, Map map) {
+    public static <T> T newInstance(Class<T> clz) {
         try {
-            T obj = clazz.newInstance();
-            doCopy(map, obj);
-            return obj;
-        } catch (InstantiationException | IllegalAccessException e) {
+            return clz.getDeclaredConstructor().newInstance();
+        } catch (InstantiationException | IllegalAccessException | InvocationTargetException | NoSuchMethodException e) {
             throw new MapException("根据class创建实例化bean失败", e);
         }
     }
 
-    private static <T> void doCopy(Map map, T obj) {
+    private static <T> void doCopy(Map<String, ?> data, T target) {
+        Preconditions.checkArgument(Objects.nonNull(data));
+        Preconditions.checkArgument(Objects.nonNull(target));
         try {
-            PropertyDescriptor[] propertyDescriptors = getPropertyDescriptor(obj.getClass());
-            if (isNotEmpty(propertyDescriptors)) {
-                for (PropertyDescriptor pd : propertyDescriptors) {
-                    if (map.containsKey(pd.getName())) {
-                        pd.getWriteMethod().invoke(obj, map.get(pd.getName()));
+            PropertyDescriptor[] descriptors = getDescriptors(target.getClass());
+            if (CommonUtil.isNotEmpty(descriptors)) {
+                for (PropertyDescriptor pd : descriptors) {
+                    if (data.containsKey(pd.getName())) {
+                        pd.getWriteMethod().invoke(target, data.get(pd.getName()));
                     }
                 }
             }
@@ -57,41 +55,29 @@ public class MapUtil {
         }
     }
 
-    public static void copyPropertiesToBean(Map<String, Object> data, Object target) {
-        Preconditions.checkArgument(Objects.nonNull(data));
-        Preconditions.checkArgument(Objects.nonNull(target));
 
-        doCopy(data, target);
-    }
-
-    private static boolean isNotEmpty(PropertyDescriptor[] propertyDescriptors) {
-        return propertyDescriptors != null && propertyDescriptors.length > 0;
-    }
-
-    public static Map<String, Object> toMap(Object javaBean) {
-        Map<String, Object> map = Maps.newHashMap();
-        buildMap(map, javaBean, false);
+    public static Map<String, ?> toMap(Object javaBean) {
+        Map<String, ?> map = Maps.newHashMap();
+        buildMap(map, javaBean);
         return map;
     }
 
     /**
      * JavaBean对象转化成Map对象
      */
-    public static Map<String, String> java2MapStr(Object javaBean) {
+    public static Map<String, String> toMapStr(Object javaBean) {
         Map<String, String> map = Maps.newHashMap();
-        buildMap(map, javaBean, true);
+        buildMap(map, javaBean);
         return map;
-
     }
 
-    private static void buildMap(Map map, Object javaBean, boolean isString) {
+    private static void buildMap(Map map, Object javaBean) {
         try {
-            PropertyDescriptor[] propertyDescriptors = getPropertyDescriptor(javaBean.getClass());
-            if (isNotEmpty(propertyDescriptors)) {
-                for (PropertyDescriptor pd : propertyDescriptors) {
+            PropertyDescriptor[] descriptors = getDescriptors(javaBean.getClass());
+            if (CommonUtil.isNotEmpty(descriptors)) {
+                for (PropertyDescriptor pd : descriptors) {
                     if (!"class".equals(pd.getName())) {
-                        map.put(pd.getName(), isString ? String.valueOf(pd.getReadMethod().invoke(javaBean))
-                                : pd.getReadMethod().invoke(javaBean));
+                        map.put(pd.getName(), pd.getReadMethod().invoke(javaBean));
                     }
                 }
             }
@@ -114,9 +100,8 @@ public class MapUtil {
     }
 
 
-    private static PropertyDescriptor[] getPropertyDescriptor(Class clazz) throws IntrospectionException {
-        BeanInfo beanInfo = Introspector.getBeanInfo(clazz);
-        return beanInfo.getPropertyDescriptors();
+    private static PropertyDescriptor[] getDescriptors(Class<?> clazz) throws IntrospectionException {
+        return Introspector.getBeanInfo(clazz).getPropertyDescriptors();
     }
 
 }
