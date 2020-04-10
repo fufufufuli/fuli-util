@@ -8,17 +8,72 @@ import java.beans.IntrospectionException;
 import java.beans.Introspector;
 import java.beans.PropertyDescriptor;
 import java.lang.reflect.InvocationTargetException;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
+import java.util.*;
 
 /**
  * @author fuli
  */
-public class MapUtil {
+public class Commons {
+
+    public static boolean isEmpty(Collection<?> data) {
+       return Objects.isNull(data)||data.isEmpty();
+    }
+
+    public static boolean isNotEmpty(Collection<?> data) {
+        return !isEmpty(data);
+    }
+
+    public static boolean isEmpty(Object[] data) {
+        return Objects.isNull(data)||data.length==0;
+    }
+
+    public static boolean isNotEmpty(Object[] data) {
+        return !isEmpty(data);
+    }
+
+    /**
+     * 只有继承了AbstractMap的类才实现了Collection接口
+     */
+    public static boolean isEmpty(Map<?, ?> map) {
+        return map == null || map.isEmpty();
+    }
+
+    public static boolean isNotEmpty(Map<?, ?> map) {
+        return !isEmpty(map);
+    }
+
+    public static String splice(Map<String, ?> params, String on, String keyValueSeparator) {
+        StringBuilder sb = new StringBuilder();
+        if (isNotEmpty(params)) {
+            Iterator<? extends Map.Entry<String, ?>> iterator = params.entrySet().iterator();
+            Map.Entry<String, ?> next;
+            while (iterator.hasNext()) {
+                next = iterator.next();
+                if (sb.length() != 0) {
+                    sb.append(on);
+                }
+                sb.append(next.getKey()).append(keyValueSeparator).append(next.getValue());
+            }
+        }
+        return sb.toString();
+    }
+
+    public static String toLowerCaseFirstOne(String str) {
+        if (Character.isLowerCase(str.charAt(0))) {
+            return str;
+        }
+        return Character.toLowerCase(str.charAt(0)) + str.substring(1);
+    }
+
+    public static String toUpperCaseFirstOne(String str) {
+        if (Character.isUpperCase(str.charAt(0))) {
+            return str;
+        }
+        return Character.toUpperCase(str.charAt(0)) + str.substring(1);
+    }
 
     public static <T> List<T> toBean(Class<T> clazz, List<Map<String, ?>> data) {
-        Preconditions.checkArgument(CommonUtil.isEmpty(data));
+        Preconditions.checkArgument(Commons.isEmpty(data));
         List<T> target = Lists.newArrayList();
         data.forEach(map -> target.add(toBean(clazz, map)));
         return target;
@@ -34,7 +89,7 @@ public class MapUtil {
         try {
             return clz.getDeclaredConstructor().newInstance();
         } catch (InstantiationException | IllegalAccessException | InvocationTargetException | NoSuchMethodException e) {
-            throw new MapException("根据class创建实例化bean失败", e);
+            throw new CommonsException("根据class创建实例化bean失败", e);
         }
     }
 
@@ -43,7 +98,7 @@ public class MapUtil {
         Preconditions.checkArgument(Objects.nonNull(target));
         try {
             PropertyDescriptor[] descriptors = getDescriptors(target.getClass());
-            if (CommonUtil.isNotEmpty(descriptors)) {
+            if (Commons.isNotEmpty(descriptors)) {
                 for (PropertyDescriptor pd : descriptors) {
                     if (data.containsKey(pd.getName())) {
                         pd.getWriteMethod().invoke(target, data.get(pd.getName()));
@@ -51,7 +106,7 @@ public class MapUtil {
                 }
             }
         } catch (IntrospectionException | IllegalAccessException | InvocationTargetException e) {
-            throw new MapException("JavaBean对象转化成Map出错", e);
+            throw new CommonsException("JavaBean对象转化成Map出错", e);
         }
     }
 
@@ -74,15 +129,16 @@ public class MapUtil {
     private static void buildMap(Map map, Object javaBean) {
         try {
             PropertyDescriptor[] descriptors = getDescriptors(javaBean.getClass());
-            if (CommonUtil.isNotEmpty(descriptors)) {
+            if (Commons.isNotEmpty(descriptors)) {
                 for (PropertyDescriptor pd : descriptors) {
-                    if (!"class".equals(pd.getName())) {
-                        map.put(pd.getName(), pd.getReadMethod().invoke(javaBean));
-                    }
+
+                    if ("class".equals(pd.getName())) continue;
+
+                    map.put(pd.getName(), pd.getReadMethod().invoke(javaBean));
                 }
             }
         } catch (IntrospectionException | IllegalAccessException | InvocationTargetException e) {
-            throw new MapException("JavaBean对象转化成Map出错", e);
+            throw new CommonsException("JavaBean对象转化成Map出错", e);
         }
     }
 
@@ -99,9 +155,7 @@ public class MapUtil {
         return result;
     }
 
-
     private static PropertyDescriptor[] getDescriptors(Class<?> clazz) throws IntrospectionException {
         return Introspector.getBeanInfo(clazz).getPropertyDescriptors();
     }
-
 }

@@ -21,7 +21,7 @@ public class MockBeanUtil {
             for (Method method : methods) {
                 String name = method.getName();
                 if (name.contains("set")) {
-                    String fieldName = CommonUtil.toLowerCaseFirstOne(name.substring(3));
+                    String fieldName = Commons.toLowerCaseFirstOne(name.substring(3));
                     Field field = clz.getDeclaredField(fieldName);
                     method.invoke(t, makeFiled(fieldName, field, method.getParameterTypes()[0]));
                 }

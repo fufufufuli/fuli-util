@@ -16,6 +16,7 @@ import java.util.concurrent.TimeUnit;
  */
 @Slf4j
 public class HttpUtil {
+
     private static OkHttpClient client;
     private static final int CONNECT_TIMEOUT = 10;
     private static final int READ_TIMEOUT = 20;
@@ -80,14 +81,14 @@ public class HttpUtil {
     }
 
     private static Request getRequest(String url, Map<String, ?> params, Map<String, String> headerMap) {
-        if (CommonUtil.isNotEmpty(params)) {
+        if (Commons.isNotEmpty(params)) {
             url += "?" + Joiner.on("&").withKeyValueSeparator("=").join(params);
         }
         if (log.isDebugEnabled()) {
             log.debug("paras:,url:{},{}", params, url);
         }
         Request.Builder builder = new Request.Builder().url(url).get();
-        if (CommonUtil.isNotEmpty(headerMap)) {
+        if (Commons.isNotEmpty(headerMap)) {
             builder.headers(Headers.of(headerMap));
         }
         return builder.build();
@@ -105,7 +106,7 @@ public class HttpUtil {
 
     private static Request buildRequest(String url, RequestBody body, Map<String, String> headerMap) {
         Request.Builder builder = new Request.Builder().url(url);
-        if (CommonUtil.isNotEmpty(headerMap)) {
+        if (Commons.isNotEmpty(headerMap)) {
             builder.headers(Headers.of(headerMap));
         }
         if (body != null) {
