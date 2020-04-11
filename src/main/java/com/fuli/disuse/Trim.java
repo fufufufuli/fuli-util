@@ -1,4 +1,4 @@
-package com.fuli.util;
+package com.fuli.disuse;
 
 import java.lang.annotation.Documented;
 import java.lang.annotation.Retention;

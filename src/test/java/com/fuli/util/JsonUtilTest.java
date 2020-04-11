@@ -1,38 +1,31 @@
 package com.fuli.util;
 
 
+import com.fuli.disuse.domain.Apple;
+import com.fuli.disuse.domain.Banana;
+import com.google.common.collect.Maps;
 import lombok.Getter;
 import lombok.Setter;
-import lombok.ToString;
 import org.junit.Test;
 
+import java.util.HashMap;
+import java.util.Map;
+
 public class JsonUtilTest {
-    @Getter
-    @Setter
-    @ToString
-    class Apple {
-        String name = "a";
 
-        String money = "123";
-    }
 
-    Apple apple = new Apple();
 
-    @Getter
-    @Setter
-    @ToString
-    class Banana {
-        String name = "b";
 
-        double money = 456;
-    }
-
-    Banana banana = new Banana();
 
     @Test
     public void test() throws Exception {
-        System.out.println(MapUtil.toMapStr(apple));
-        System.out.println(MapUtil.toMap(banana));
+        Map<String, String> map = Maps.newHashMap();
+        map.put("name", "apple");
+        map.put("cost", "123");
+         Apple apple = Commons.toBean(Apple.class, map);
+        System.out.println(apple);
+       // Banana banana = Commons.toBean(Banana.class, map);
+
     }
 
 }
