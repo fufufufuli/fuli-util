@@ -16,7 +16,7 @@ import java.util.*;
 public class Commons {
 
     public static boolean isEmpty(Collection<?> data) {
-       return Objects.isNull(data)||data.isEmpty();
+        return Objects.isNull(data) || data.isEmpty();
     }
 
     public static boolean isNotEmpty(Collection<?> data) {
@@ -24,7 +24,7 @@ public class Commons {
     }
 
     public static boolean isEmpty(Object[] data) {
-        return Objects.isNull(data)||data.length==0;
+        return Objects.isNull(data) || data.length == 0;
     }
 
     public static boolean isNotEmpty(Object[] data) {
@@ -42,6 +42,9 @@ public class Commons {
         return !isEmpty(map);
     }
 
+    /**
+     * 用法同Guava的Joiner
+     */
     public static String splice(Map<String, ?> params, String on, String keyValueSeparator) {
         StringBuilder sb = new StringBuilder();
         if (isNotEmpty(params)) {
@@ -59,50 +62,41 @@ public class Commons {
     }
 
     public static String toLowerCaseFirstOne(String str) {
-        if (Character.isLowerCase(str.charAt(0))) {
-            return str;
-        }
-        return Character.toLowerCase(str.charAt(0)) + str.substring(1);
+        return Character.isLowerCase(str.charAt(0)) ? str : Character.toLowerCase(str.charAt(0)) + str.substring(1);
     }
 
     public static String toUpperCaseFirstOne(String str) {
-        if (Character.isUpperCase(str.charAt(0))) {
-            return str;
-        }
-        return Character.toUpperCase(str.charAt(0)) + str.substring(1);
+        return Character.isUpperCase(str.charAt(0)) ? str : Character.toUpperCase(str.charAt(0)) + str.substring(1);
     }
 
     public static <T> List<T> toBean(Class<T> clazz, List<Map<String, ?>> data) {
         Preconditions.checkArgument(Commons.isEmpty(data));
-        List<T> target = Lists.newArrayList();
-        data.forEach(map -> target.add(toBean(clazz, map)));
-        return target;
+        List<T> tar = Lists.newArrayList();
+        data.forEach(map -> tar.add(toBean(clazz, map)));
+        return tar;
     }
 
-    public static <T> T toBean(Class<T> clazz, Map<String, ?> map) {
-        T t = newInstance(clazz);
-        doCopy(map, t);
-        return t;
+    public static <T> T toBean(Class<T> clazz, Map<String, ?> data) {
+        Preconditions.checkArgument(Objects.nonNull(data));
+        T tar = newInstance(clazz);
+        doCopy(data, tar);
+        return tar;
     }
 
-    public static <T> T newInstance(Class<T> clz) {
+    public static <T> T newInstance(Class<T> clazz) {
         try {
-            return clz.getDeclaredConstructor().newInstance();
+            return clazz.getDeclaredConstructor().newInstance();
         } catch (InstantiationException | IllegalAccessException | InvocationTargetException | NoSuchMethodException e) {
             throw new CommonsException("根据class创建实例化bean失败", e);
         }
     }
 
-    private static <T> void doCopy(Map<String, ?> data, T target) {
-        Preconditions.checkArgument(Objects.nonNull(data));
-        Preconditions.checkArgument(Objects.nonNull(target));
+    private static <T> void doCopy(Map<String, ?> data, T tar) {
         try {
-            PropertyDescriptor[] descriptors = getDescriptors(target.getClass());
-            if (Commons.isNotEmpty(descriptors)) {
-                for (PropertyDescriptor pd : descriptors) {
-                    if (data.containsKey(pd.getName())) {
-                        pd.getWriteMethod().invoke(target, data.get(pd.getName()));
-                    }
+            PropertyDescriptor[] descriptors = getDescriptors(tar.getClass());
+            for (PropertyDescriptor pd : descriptors) {
+                if (data.containsKey(pd.getName())) {
+                    pd.getWriteMethod().invoke(tar, data.get(pd.getName()));
                 }
             }
         } catch (IntrospectionException | IllegalAccessException | InvocationTargetException e) {
@@ -111,31 +105,29 @@ public class Commons {
     }
 
 
-    public static Map<String, ?> toMap(Object javaBean) {
+    public static Map<String, ?> toMap(Object bean) {
+        Preconditions.checkArgument(Objects.nonNull(bean));
         Map<String, ?> map = Maps.newHashMap();
-        buildMap(map, javaBean);
+        buildMap(map, bean);
         return map;
     }
 
     /**
      * JavaBean对象转化成Map对象
      */
-    public static Map<String, String> toMapStr(Object javaBean) {
+    public static Map<String, String> toMapStr(Object bean) {
+        Preconditions.checkArgument(Objects.nonNull(bean));
         Map<String, String> map = Maps.newHashMap();
-        buildMap(map, javaBean);
+        buildMap(map, bean);
         return map;
     }
-
+    @SuppressWarnings("rawtypes,unchecked")
     private static void buildMap(Map map, Object javaBean) {
         try {
             PropertyDescriptor[] descriptors = getDescriptors(javaBean.getClass());
-            if (Commons.isNotEmpty(descriptors)) {
-                for (PropertyDescriptor pd : descriptors) {
-
-                    if ("class".equals(pd.getName())) continue;
-
-                    map.put(pd.getName(), pd.getReadMethod().invoke(javaBean));
-                }
+            for (PropertyDescriptor pd : descriptors) {
+                if ("class".equals(pd.getName())) continue;
+                map.put(pd.getName(), pd.getReadMethod().invoke(javaBean));
             }
         } catch (IntrospectionException | IllegalAccessException | InvocationTargetException e) {
             throw new CommonsException("JavaBean对象转化成Map出错", e);

@@ -3,7 +3,6 @@ package com.fuli.util;
 import com.fasterxml.jackson.databind.*;
 import com.fasterxml.jackson.dataformat.xml.XmlMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
-import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 
@@ -11,11 +10,13 @@ import java.io.IOException;
 import java.util.List;
 import java.util.Map;
 
+import static com.fuli.util.JsonException.CONVERT_ERROR;
+
 /**
  * @author fuli
  */
-@Slf4j
 public class JsonUtil {
+
     private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
     private static final XmlMapper XML_MAPPER = new XmlMapper();
     private static final JavaTimeModule JAVA_TIME_MODULE = new JavaTimeModule();
@@ -37,7 +38,6 @@ public class JsonUtil {
         try {
             return OBJECT_MAPPER.writeValueAsString(obj);
         } catch (IOException e) {
-            log.error("LK-PC0019a: to json exception.", e);
             throw new JsonException("object to json error", e);
         }
     }
@@ -54,7 +54,6 @@ public class JsonUtil {
         try {
             return OBJECT_MAPPER.readValue(json, clazz);
         } catch (IOException e) {
-            log.error("LK-PC00186: from json exception", e);
             throw new JsonException(e.getLocalizedMessage());
         }
     }
@@ -62,16 +61,16 @@ public class JsonUtil {
     /**
      * 获取泛型的Collection Type
      *
-     * @param jsonStr         jsonString
+     * @param json            json
      * @param collectionClass 泛型的Collection
      * @param elementClasses  元素类型
      */
-    public static <T> T fromJson(String jsonStr, Class<?> collectionClass, Class<?>... elementClasses) {
+    public static <T> T fromJson(String json, Class<?> collectionClass, Class<?>... elementClasses) {
         JavaType javaType = OBJECT_MAPPER.getTypeFactory().constructParametricType(collectionClass, elementClasses);
         try {
-            return OBJECT_MAPPER.readValue(jsonStr, javaType);
+            return OBJECT_MAPPER.readValue(json, javaType);
         } catch (IOException e) {
-            throw new JsonException("convert json error:", e);
+            throw new JsonException(CONVERT_ERROR, e);
         }
     }
 
@@ -80,7 +79,7 @@ public class JsonUtil {
         return OBJECT_MAPPER.convertValue(o, tClass);
     }
 
-
+    @SuppressWarnings("unchecked")
     public static Map<String, Object> toMap(String json) {
         return fromJson(json, Map.class);
     }
@@ -91,64 +90,54 @@ public class JsonUtil {
     public static String getValue(String jsonString, String key) {
         try {
             JsonNode value = OBJECT_MAPPER.readTree(jsonString).findValue(key);
-            if (value == null) {
-                return null;
-            }
-            return value.asText();
+            return value == null ? null : value.asText();
         } catch (IOException e) {
-            throw new JsonException(JsonException.GET_VALUE_ERROR, e);
+            throw new JsonException(CONVERT_ERROR, e);
         }
     }
 
     /**
      * 根据key获取json对应values
      */
-    public static List<String> getValues(String jsonString, String key) {
-        return getValues(jsonString, key, String.class);
+    public static List<String> getValues(String json, String key) {
+        return getValues(json, key, String.class);
     }
 
     /**
      * 根据key获取json对应value
      */
-    public static <T> T getValue(String jsonString, String key, Class<T> clazz) {
+    public static <T> T getValue(String json, String key, Class<T> clazz) {
         try {
-            JsonNode value = OBJECT_MAPPER.readTree(jsonString).findValue(key);
-            if (value == null) {
-                return null;
-            }
-            return fromJson(value.toString(), clazz);
+            JsonNode value = OBJECT_MAPPER.readTree(json).findValue(key);
+            return value == null?null: fromJson(value.toString(), clazz);
         } catch (IOException e) {
-            throw new JsonException(JsonException.GET_VALUE_ERROR, e);
+            throw new JsonException(CONVERT_ERROR, e);
         }
     }
 
     /**
      * 根据key获取json对应values
      */
-    public static <T> List<T> getValues(String jsonString, String key, Class<T> clazz) {
+    public static <T> List<T> getValues(String json, String key, Class<T> clazz) {
         if (StringUtils.isEmpty(key)) {
-            return fromJson(jsonString, List.class, clazz);
+            return fromJson(json, List.class, clazz);
         }
         try {
-            List<JsonNode> values = OBJECT_MAPPER.readTree(jsonString).findValues(key);
-            if (CollectionUtils.isEmpty(values)) {
-                return null;
-            }
-            return fromJson(values.toString(), List.class, clazz);
+            List<JsonNode> values = OBJECT_MAPPER.readTree(json).findValues(key);
+            return CollectionUtils.isEmpty(values)?null: fromJson(values.toString(), List.class, clazz);
         } catch (IOException e) {
-            throw new JsonException(JsonException.GET_VALUE_ERROR, e);
+            throw new JsonException(CONVERT_ERROR, e);
         }
     }
 
     /**
      * xml转json
      */
-    public static String xmlToJson(String xmlString) {
-        xmlString = xmlString.replace("\n", "").replace("(?s)<\\!\\-\\-.+?\\-\\->", "");
+    public static String xmlToJson(String xml) {
         try {
-            return toJson(XML_MAPPER.readTree(xmlString));
+            return toJson(XML_MAPPER.readTree(xml.replace("\n", "").replace("(?s)<\\!\\-\\-.+?\\-\\->", "")));
         } catch (IOException e) {
-            throw new JsonException(JsonException.GET_VALUE_ERROR, e);
+            throw new JsonException(CONVERT_ERROR, e);
         }
     }
 

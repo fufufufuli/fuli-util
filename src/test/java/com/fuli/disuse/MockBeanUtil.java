@@ -36,10 +36,6 @@ public class MockBeanUtil {
     /**
      * 设置字段
      * todo 按照字段名，数据类型 自定义mock 值
-     *
-     * @param clz
-     * @param <T>
-     * @return
      */
     private static <T> T makeFiled(String name, Field field, Class<T> clz) throws ClassNotFoundException {
         Object obj;

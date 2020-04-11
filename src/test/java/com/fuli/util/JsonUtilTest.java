@@ -1,14 +1,10 @@
 package com.fuli.util;
 
 
-import com.fuli.disuse.domain.Apple;
-import com.fuli.disuse.domain.Banana;
+import com.fuli.disuse.Apple;
 import com.google.common.collect.Maps;
-import lombok.Getter;
-import lombok.Setter;
 import org.junit.Test;
 
-import java.util.HashMap;
 import java.util.Map;
 
 public class JsonUtilTest {

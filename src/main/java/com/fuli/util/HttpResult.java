@@ -12,9 +12,8 @@ import lombok.*;
 @NoArgsConstructor
 @AllArgsConstructor
 public class HttpResult {
+
     private int code;
-    /**
-     * 返回body信息
-     */
-    private String result;
+
+    private String body;
 }

@@ -3,8 +3,9 @@ package com.fuli.util;
 /**
  * @author fuli
  */
-public final class JsonException extends RuntimeException {
-    public static final String GET_VALUE_ERROR = "GET_VALUE_ERROR";
+final class JsonException extends RuntimeException {
+
+    public static final String CONVERT_ERROR = "convert json error:";
 
     public JsonException(final String message) { super(message); }
 

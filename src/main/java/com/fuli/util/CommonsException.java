@@ -3,7 +3,8 @@ package com.fuli.util;
 /**
  * @author fuli
  */
-public class CommonsException extends RuntimeException{
+final class CommonsException extends RuntimeException{
+
     public CommonsException(String message) {
         super(message);
     }

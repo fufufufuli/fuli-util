@@ -26,10 +26,10 @@ public class TransferUtils {
     public static BigDecimal transBigDecimal(Object obj) {
         if (obj == null) {
             return null;
-        } else if (obj instanceof Integer) {
-            return new BigDecimal((Integer) obj);
-        } else if (obj instanceof String && StringUtils.isNotBlank(String.valueOf(obj))) {
-            return new BigDecimal((String) obj);
+        } else if (obj instanceof Integer integer) {
+            return new BigDecimal(integer);
+        } else if (obj instanceof String str && StringUtils.isNotBlank(String.valueOf(obj))) {
+            return new BigDecimal(str);
         }
         throw new TransferException(obj.getClass().getSimpleName());
     }
@@ -37,10 +37,10 @@ public class TransferUtils {
     public static Integer transInteger(Object obj) {
         if (obj == null) {
             return null;
-        } else if (obj instanceof Integer) {
-            return (Integer) obj;
-        } else if (obj instanceof String && StringUtils.isNotBlank((String) obj)) {
-            return Integer.valueOf((String) obj);
+        } else if (obj instanceof Integer integer) {
+            return integer;
+        } else if (obj instanceof String str && StringUtils.isNotBlank(str)) {
+            return Integer.valueOf(str);
         }
         throw new TransferException(obj.getClass().getSimpleName());
     }
@@ -52,7 +52,7 @@ public class TransferUtils {
         try {
             return DateUtils.parseDate(value, PATTERNS).toInstant();
         } catch (ParseException e) {
-            throw new TransferException("时间格式转换错误", e);
+            throw new TransferException("data format error:", e);
         }
     }
 }

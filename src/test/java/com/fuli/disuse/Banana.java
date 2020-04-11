@@ -1,4 +1,4 @@
-package com.fuli.disuse.domain;
+package com.fuli.disuse;
 
 import lombok.Getter;
 import lombok.Setter;

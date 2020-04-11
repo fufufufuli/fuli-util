@@ -14,7 +14,6 @@ import java.util.concurrent.TimeUnit;
 /**
  * @author fuli
  */
-@Slf4j
 public class HttpUtil {
 
     private static OkHttpClient client;
@@ -40,15 +39,14 @@ public class HttpUtil {
                 .build();
     }
 
-
     public static OkHttpClient getOkHttpClient() {
         return HttpUtil.client;
     }
 
-    public static HttpResult call(String method, String url, Map<String, ?> params, Map<String, String> headerMap) {
+    public static HttpResult call(String method, String url, Map<String, ?> params, Map<String, String> header) {
         return switch (method) {
-            case HttpUtil.GET -> get(url, params, headerMap);
-            case HttpUtil.POST, HttpUtil.FORM -> post(url, params, headerMap, method);
+            case HttpUtil.GET -> get(url, params, header);
+            case HttpUtil.POST, HttpUtil.FORM -> post(url, params, header, method);
                     /*   case HttpUtil.WEBSERVICE:
                 //todo
                 return null;*/
@@ -60,54 +58,51 @@ public class HttpUtil {
         return doRequest(getRequest(url, params, null));
     }
 
-    public static HttpResult get(String url, Map<String, ?> params, Map<String, String> headerMap) {
-        return doRequest(getRequest(url, params, headerMap));
+    public static HttpResult get(String url, Map<String, ?> params, Map<String, String> header) {
+        return doRequest(getRequest(url, params, header));
     }
 
     public static HttpResult post(String url, Map<String, ?> params, String method) {
         return doRequest(postRequest(url, params, method, null));
     }
 
-    public static HttpResult post(String url, Map<String, ?> params, Map<String, String> headerMap, String method) {
-        return doRequest(postRequest(url, params, method, headerMap));
+    public static HttpResult post(String url, Map<String, ?> params, Map<String, String> header, String method) {
+        return doRequest(postRequest(url, params, method, header));
     }
 
     public static HttpResult post(String url, String json) {
         return doRequest(postRequest(url, json, null));
     }
 
-    public static HttpResult post(String url, String json, Map<String, String> headerMap) {
-        return doRequest(postRequest(url, json, headerMap));
+    public static HttpResult post(String url, String json, Map<String, String> header) {
+        return doRequest(postRequest(url, json, header));
     }
 
-    private static Request getRequest(String url, Map<String, ?> params, Map<String, String> headerMap) {
+    private static Request getRequest(String url, Map<String, ?> params, Map<String, String> header) {
         if (Commons.isNotEmpty(params)) {
             url += "?" + Joiner.on("&").withKeyValueSeparator("=").join(params);
         }
-        if (log.isDebugEnabled()) {
-            log.debug("paras:,url:{},{}", params, url);
-        }
         Request.Builder builder = new Request.Builder().url(url).get();
-        if (Commons.isNotEmpty(headerMap)) {
-            builder.headers(Headers.of(headerMap));
+        if (Commons.isNotEmpty(header)) {
+            builder.headers(Headers.of(header));
         }
         return builder.build();
     }
 
-    private static Request postRequest(String url, Map<String, ?> params, String method, Map<String, String> headerMap) {
+    private static Request postRequest(String url, Map<String, ?> params, String method, Map<String, String> header) {
         RequestBody body = switch (method) {
             case POST -> bodyJson(params);
             case FORM -> bodyForm(params);
             case FILE -> bodyFile(params);
             default -> throw new HttpException(HttpException.MISS_TYPE, method);
         };
-        return buildRequest(url, body, headerMap);
+        return buildRequest(url, body, header);
     }
 
-    private static Request buildRequest(String url, RequestBody body, Map<String, String> headerMap) {
+    private static Request buildRequest(String url, RequestBody body, Map<String, String> header) {
         Request.Builder builder = new Request.Builder().url(url);
-        if (Commons.isNotEmpty(headerMap)) {
-            builder.headers(Headers.of(headerMap));
+        if (Commons.isNotEmpty(header)) {
+            builder.headers(Headers.of(header));
         }
         if (body != null) {
             builder.post(body);
@@ -115,9 +110,9 @@ public class HttpUtil {
         return builder.build();
     }
 
-    private static Request postRequest(String url, String json, Map<String, String> headerMap) {
+    private static Request postRequest(String url, String json, Map<String, String> header) {
         RequestBody body = RequestBody.create(json, MEDIA_JSON);
-        return buildRequest(url, body, headerMap);
+        return buildRequest(url, body, header);
     }
 
     private static RequestBody bodyFile(Map<String, ?> params) {
@@ -139,11 +134,7 @@ public class HttpUtil {
     }
 
     private static RequestBody bodyJson(Map<String, ?> params) {
-        String json = JsonUtil.toJson(params);
-        if (log.isDebugEnabled()) {
-            log.debug("请求参数为{}", json);
-        }
-        return RequestBody.create(json, MEDIA_JSON);
+        return RequestBody.create(JsonUtil.toJson(params), MEDIA_JSON);
     }
 
     private static HttpResult doRequest(final Request request) {
@@ -154,21 +145,19 @@ public class HttpUtil {
         }
     }
 
-    private static HttpResult responseResult(Response response) {
-        if (response.body() != null) {
-            int capacity = (int) response.body().contentLength();
-            StringBuilder sb = new StringBuilder(capacity < 0 ? 4096 : capacity);
-            char[] tmp = new char[1024];
-            int l;
-            try (Reader reader = response.body().charStream()) {
-                while ((l = reader.read(tmp)) != -1) {
-                    sb.append(tmp, 0, l);
-                }
-                return new HttpResult(response.code(), sb.toString());
-            } catch (IOException e) {
-                throw new HttpException(e);
+    private static HttpResult responseResult(Response response) throws IOException {
+        if (response.body() == null) {
+            return new HttpResult(response.code(), response.message());
+        }
+        int capacity = (int) response.body().contentLength();
+        StringBuilder sb = new StringBuilder(capacity < 0 ? 4096 : capacity);
+        char[] tmp = new char[1024];
+        int l;
+        try (Reader reader = response.body().charStream()) {
+            while ((l = reader.read(tmp)) != -1) {
+                sb.append(tmp, 0, l);
             }
         }
-        return new HttpResult(response.code(), response.message());
+        return new HttpResult(response.code(), sb.toString());
     }
 }
