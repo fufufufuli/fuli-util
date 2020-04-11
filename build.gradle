@@ -6,6 +6,13 @@ apply plugin: 'java'
 group 'com.fuli'
 version '1.0-SNAPSHOT'
 
+sourceCompatibility = 14
+tasks.withType(JavaCompile) {
+    options.compilerArgs += '--enable-preview'
+}
+tasks.withType(Test) {
+    jvmArgs += "--enable-preview"
+}
 repositories {
     mavenCentral()
 }
@@ -29,13 +36,16 @@ dependencies {
     compile "com.fasterxml.jackson.datatype:jackson-datatype-hibernate5:${fasterxml_jackson_version}"
     compile "com.fasterxml.jackson.dataformat:jackson-dataformat-yaml:${fasterxml_jackson_version}"
     compile "com.squareup.okhttp3:okhttp:${okhttp_version}"
-    compile "org.projectlombok:lombok:${lombok_version}"
+    compileOnly "org.projectlombok:lombok:${lombok_version}"
+    annotationProcessor "org.projectlombok:lombok:${lombok_version}"
     compile 'org.apache.commons:commons-lang3:3.9'
-    compile group: 'org.slf4j', name: 'slf4j-api', version: '1.7.26'
+    compile 'org.apache.commons:commons-collections4:4.4'
+    compile 'org.slf4j:slf4j-api:1.7.26'
     compile "com.google.guava:guava:${google_guava_version}"
-    compile group: 'org.apache.commons', name: 'commons-collections4', version: '4.4'
     compile 'org.reflections:reflections:0.9.11'
     //test
+    testCompileOnly "org.projectlombok:lombok:${lombok_version}"
+    testAnnotationProcessor "org.projectlombok:lombok:${lombok_version}"
     testCompile "org.mockito:mockito-core:2.27.0"
     testCompile("org.junit.jupiter:junit-jupiter-api:${junit_version}")
     testCompile("org.junit.jupiter:junit-jupiter-engine:${junit_version}")
