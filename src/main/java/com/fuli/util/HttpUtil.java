@@ -54,6 +54,10 @@ public class HttpUtil {
         };
     }
 
+    public static HttpResult get(String url) {
+        return doRequest(getRequest(url, null, null));
+    }
+
     public static HttpResult get(String url, Map<String, ?> params) {
         return doRequest(getRequest(url, params, null));
     }
