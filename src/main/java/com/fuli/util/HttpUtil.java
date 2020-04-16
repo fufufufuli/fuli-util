@@ -3,10 +3,12 @@ package com.fuli.util;
 import com.google.common.base.Joiner;
 import okhttp3.*;
 import okhttp3.MultipartBody.Builder;
+import org.apache.commons.lang3.StringUtils;
 
 import java.io.File;
 import java.io.IOException;
 import java.io.Reader;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
@@ -23,10 +25,10 @@ public class HttpUtil {
     private static final MediaType MEDIA_JSON = MediaType.parse("application/json; charset=utf-8");
     public static final String GET = "get";
     public static final String POST = "post";
-    public static final String JSON = "json";
+
     public static final String FORM = "form";
     public static final String FILE = "file";
-    public static final String WEBSERVICE = "webservice";
+    public static final String SOAP = "soap";
 
     static {
         ConnectionPool pool = new ConnectionPool(MAX_IDLE_CONNECTIONS, KEEP_ALIVE_DURATION, TimeUnit.MINUTES);
@@ -46,7 +48,7 @@ public class HttpUtil {
         return switch (method) {
             case HttpUtil.GET -> get(url, params, header);
             case HttpUtil.POST, HttpUtil.FORM -> post(url, params, header, method);
-                    /*   case HttpUtil.WEBSERVICE:
+                    /*   case HttpUtil.SOAP:
                 //todo
                 return null;*/
             default -> throw new HttpException(HttpException.MISS_TYPE, method);
@@ -65,6 +67,95 @@ public class HttpUtil {
         return doRequest(getRequest(url, params, header));
     }
 
+    /**
+     * 支持单个数组
+     */
+    public static HttpResult get(String url, String key, List<String> args) {
+        return doRequest(getRequestArray(url, null, null, key, args));
+    }
+
+    public static HttpResult get(String url, Map<String, ?> params, String key, List<String> args) {
+        return doRequest(getRequestArray(url, params, null, key, args));
+    }
+
+    public static HttpResult get(String url, Map<String, ?> params, Map<String, String> header, String key, List<String> args) {
+        return doRequest(getRequestArray(url, params, header, key, args));
+    }
+
+    /**
+     * 支持多个数组
+     */
+    @SafeVarargs
+    public static HttpResult get(String url , List<String> keys, List<String>... args) {
+        return doRequest(getRequestArrays(url, null,null, keys, args));
+    }
+
+    @SafeVarargs
+    public static HttpResult get(String url, Map<String, ?> params, List<String> keys, List<String>... args) {
+        return doRequest(getRequestArrays(url, params, null, keys, args));
+    }
+
+    @SafeVarargs
+    public static HttpResult get(String url, Map<String, ?> params, Map<String, String> header, List<String> keys, List<String>... args) {
+        return doRequest(getRequestArrays(url, params, header, keys, args));
+    }
+
+    @SafeVarargs
+    private static Request getRequestArrays(String url, Map<String, ?> params, Map<String, String> header, List<String> keys, List<String>... args) {
+        url = addUrl(url, params);
+        if (Commons.isEmpty(keys) ) {
+            throw new HttpException("数组key值为空");
+        } if (args==null|| keys.size() == args.length){
+            throw new HttpException("数组为空或数组key的个数与数组个数不符");
+        }
+        StringBuilder urlBuilder = new StringBuilder(url);
+        for (String key : keys) {
+            for (List<String> arg : args) {
+                for (String s : arg) {
+                    urlBuilder.append("&").append(key).append("=").append(s);
+                }
+            }
+        }
+        url = urlBuilder.toString();
+        return buildGetRequest(url, header);
+    }
+
+    private static String addUrl(String url, Map<String, ?> params) {
+        if (Commons.isNotEmpty(params)) {
+            url += "?" + Joiner.on("&").withKeyValueSeparator("=").join(params);
+        }
+        return url;
+    }
+
+    private static Request getRequestArray(String url, Map<String, ?> params, Map<String, String> header, String key, List<String> args) {
+        url = addUrl(url, params);
+        if (StringUtils.isNotEmpty(key)) {
+            StringBuilder urlBuilder = new StringBuilder(url);
+            for (String arg : args) {
+                urlBuilder.append("&").append(key).append("=").append(arg);
+            }
+            url = urlBuilder.toString();
+        }
+        return buildGetRequest(url, header);
+    }
+
+    private static Request getRequest(String url, Map<String, ?> params, Map<String, String> header) {
+        url = addUrl(url, params);
+        return buildGetRequest(url, header);
+    }
+
+    private static Request buildGetRequest(String url, Map<String, String> header) {
+        Request.Builder builder = new Request.Builder().url(url).get();
+        if (Commons.isNotEmpty(header)) {
+            builder.headers(Headers.of(header));
+        }
+        return builder.build();
+    }
+
+    public static HttpResult post(String url, String json, Map<String, String> header) {
+        return doRequest(postRequest(url, json, header));
+    }
+
     public static HttpResult post(String url, Map<String, ?> params, String method) {
         return doRequest(postRequest(url, params, method, null));
     }
@@ -77,21 +168,6 @@ public class HttpUtil {
         return doRequest(postRequest(url, json, null));
     }
 
-    public static HttpResult post(String url, String json, Map<String, String> header) {
-        return doRequest(postRequest(url, json, header));
-    }
-
-    private static Request getRequest(String url, Map<String, ?> params, Map<String, String> header) {
-        if (Commons.isNotEmpty(params)) {
-            url += "?" + Joiner.on("&").withKeyValueSeparator("=").join(params);
-        }
-        Request.Builder builder = new Request.Builder().url(url).get();
-        if (Commons.isNotEmpty(header)) {
-            builder.headers(Headers.of(header));
-        }
-        return builder.build();
-    }
-
     private static Request postRequest(String url, Map<String, ?> params, String method, Map<String, String> header) {
         RequestBody body = switch (method) {
             case POST -> bodyJson(params);
@@ -99,10 +175,10 @@ public class HttpUtil {
             case FILE -> bodyFile(params);
             default -> throw new HttpException(HttpException.MISS_TYPE, method);
         };
-        return buildRequest(url, body, header);
+        return buildPostRequest(url, body, header);
     }
 
-    private static Request buildRequest(String url, RequestBody body, Map<String, String> header) {
+    private static Request buildPostRequest(String url, RequestBody body, Map<String, String> header) {
         Request.Builder builder = new Request.Builder().url(url);
         if (Commons.isNotEmpty(header)) {
             builder.headers(Headers.of(header));
@@ -115,7 +191,7 @@ public class HttpUtil {
 
     private static Request postRequest(String url, String json, Map<String, String> header) {
         RequestBody body = RequestBody.create(json, MEDIA_JSON);
-        return buildRequest(url, body, header);
+        return buildPostRequest(url, body, header);
     }
 
     private static RequestBody bodyFile(Map<String, ?> params) {
