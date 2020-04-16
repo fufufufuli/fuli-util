@@ -3,7 +3,6 @@ package com.fuli.util;
 import com.fasterxml.jackson.databind.*;
 import com.fasterxml.jackson.dataformat.xml.XmlMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
-import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 
 import java.io.IOException;
@@ -124,7 +123,7 @@ public class JsonUtil {
         }
         try {
             List<JsonNode> values = OBJECT_MAPPER.readTree(json).findValues(key);
-            return CollectionUtils.isEmpty(values)?null: fromJson(values.toString(), List.class, clazz);
+            return Commons.isEmpty(values)?null: fromJson(values.toString(), List.class, clazz);
         } catch (IOException e) {
             throw new JsonException(CONVERT_ERROR, e);
         }

@@ -39,8 +39,6 @@ dependencies {
     compileOnly "org.projectlombok:lombok:${lombok_version}"
     annotationProcessor "org.projectlombok:lombok:${lombok_version}"
     compile 'org.apache.commons:commons-lang3:3.9'
-    compile 'org.apache.commons:commons-collections4:4.4'
-    compile 'org.slf4j:slf4j-api:1.7.26'
     compile "com.google.guava:guava:${google_guava_version}"
     compile 'org.reflections:reflections:0.9.11'
     //test

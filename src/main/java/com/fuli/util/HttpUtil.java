@@ -1,7 +1,6 @@
 package com.fuli.util;
 
 import com.google.common.base.Joiner;
-import lombok.extern.slf4j.Slf4j;
 import okhttp3.*;
 import okhttp3.MultipartBody.Builder;
 
