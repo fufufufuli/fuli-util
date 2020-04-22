@@ -1,18 +1,20 @@
 package com.fuli.util;
 
+import com.google.common.base.Preconditions;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.time.DateUtils;
 
 import java.math.BigDecimal;
 import java.text.ParseException;
 import java.time.Instant;
+import java.util.Objects;
 
 /**
  * 转换参数
  *
  * @author fuli
  */
-public class TransferUtils {
+public class TransUtils {
 
     private static final String[] PATTERNS = {
             "yyyy-MM-dd HH:mm:ss",
@@ -24,35 +26,31 @@ public class TransferUtils {
     };
 
     public static BigDecimal transBigDecimal(Object obj) {
-        if (obj == null) {
-            return null;
-        } else if (obj instanceof Integer integer) {
-            return new BigDecimal(integer);
+        Preconditions.checkArgument(Objects.nonNull(obj));
+        if (obj instanceof Number number) {
+            return BigDecimal.valueOf(number.doubleValue());
         } else if (obj instanceof String str && StringUtils.isNotBlank(String.valueOf(obj))) {
             return new BigDecimal(str);
         }
-        throw new TransferException(obj.getClass().getSimpleName());
+        throw new TransException(obj.getClass().getSimpleName());
     }
 
     public static Integer transInteger(Object obj) {
-        if (obj == null) {
-            return null;
-        } else if (obj instanceof Integer integer) {
+        Preconditions.checkArgument(Objects.nonNull(obj));
+        if (obj instanceof Integer integer) {
             return integer;
         } else if (obj instanceof String str && StringUtils.isNotBlank(str)) {
             return Integer.valueOf(str);
         }
-        throw new TransferException(obj.getClass().getSimpleName());
+        throw new TransException(obj.getClass().getSimpleName());
     }
 
     public static Instant transInstant(String value) {
-        if (StringUtils.isBlank(value)) {
-            return null;
-        }
+        Preconditions.checkArgument(StringUtils.isBlank(value));
         try {
             return DateUtils.parseDate(value, PATTERNS).toInstant();
         } catch (ParseException e) {
-            throw new TransferException("data format error:", e);
+            throw new TransException("data format error:", e);
         }
     }
 }

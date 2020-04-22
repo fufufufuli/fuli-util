@@ -15,6 +15,14 @@ import java.util.*;
  */
 public class Commons {
 
+    public static boolean isEmpty(CharSequence cs) {
+        return cs == null || cs.length() == 0;
+    }
+
+    public static boolean isNotEmpty(CharSequence cs) {
+        return !isEmpty(cs);
+    }
+
     public static boolean isEmpty(Collection<?> data) {
         return Objects.isNull(data) || data.isEmpty();
     }
@@ -121,6 +129,7 @@ public class Commons {
         buildMap(map, bean);
         return map;
     }
+
     @SuppressWarnings("rawtypes,unchecked")
     private static void buildMap(Map map, Object javaBean) {
         try {
