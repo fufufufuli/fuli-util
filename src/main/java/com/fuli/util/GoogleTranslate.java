@@ -1,5 +1,7 @@
 package com.fuli.util;
 
+import com.fuli.util.http.HttpResult;
+import com.fuli.util.http.HttpUtil;
 import org.apache.commons.io.FileUtils;
 
 import javax.script.Invocable;
