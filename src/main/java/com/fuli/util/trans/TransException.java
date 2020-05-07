@@ -1,9 +1,9 @@
-package com.fuli.util;
+package com.fuli.util.trans;
 
 /**
  * @author fuli
  */
-public class TransException extends RuntimeException {
+final class TransException extends RuntimeException {
 
     public static final String UN_KNOW_CLASS="未识别对象类型：";
 

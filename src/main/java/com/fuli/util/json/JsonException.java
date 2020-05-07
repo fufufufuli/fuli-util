@@ -1,4 +1,4 @@
-package com.fuli.util;
+package com.fuli.util.json;
 
 /**
  * @author fuli

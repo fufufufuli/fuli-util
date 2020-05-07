@@ -1,15 +1,15 @@
-package com.fuli.util;
+package com.fuli.util.json;
 
 import com.fasterxml.jackson.databind.*;
 import com.fasterxml.jackson.dataformat.xml.XmlMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
-import org.apache.commons.lang3.StringUtils;
+import com.fuli.util.Commons;
 
 import java.io.IOException;
 import java.util.List;
 import java.util.Map;
 
-import static com.fuli.util.JsonException.CONVERT_ERROR;
+import static com.fuli.util.json.JsonException.CONVERT_ERROR;
 
 /**
  * @author fuli
@@ -108,7 +108,7 @@ public class JsonUtil {
     public static <T> T getValue(String json, String key, Class<T> clazz) {
         try {
             JsonNode value = OBJECT_MAPPER.readTree(json).findValue(key);
-            return value == null?null: fromJson(value.toString(), clazz);
+            return value == null ? null : fromJson(value.toString(), clazz);
         } catch (IOException e) {
             throw new JsonException(CONVERT_ERROR, e);
         }
@@ -118,12 +118,10 @@ public class JsonUtil {
      * 根据key获取json对应values
      */
     public static <T> List<T> getValues(String json, String key, Class<T> clazz) {
-        if (StringUtils.isEmpty(key)) {
-            return fromJson(json, List.class, clazz);
-        }
+        if (Commons.isEmpty(key)) return fromJson(json, List.class, clazz);
         try {
             List<JsonNode> values = OBJECT_MAPPER.readTree(json).findValues(key);
-            return Commons.isEmpty(values)?null: fromJson(values.toString(), List.class, clazz);
+            return Commons.isEmpty(values) ? null : fromJson(values.toString(), List.class, clazz);
         } catch (IOException e) {
             throw new JsonException(CONVERT_ERROR, e);
         }
@@ -134,7 +132,8 @@ public class JsonUtil {
      */
     public static String xmlToJson(String xml) {
         try {
-            return toJson(XML_MAPPER.readTree(xml.replace("\n", "").replace("(?s)<\\!\\-\\-.+?\\-\\->", "")));
+            return toJson(XML_MAPPER.readTree(xml.replace("\n", "")
+                    .replace("(?s)<\\!\\-\\-.+?\\-\\->", "")));
         } catch (IOException e) {
             throw new JsonException(CONVERT_ERROR, e);
         }

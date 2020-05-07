@@ -1,9 +1,10 @@
-package com.fuli.util;
+package com.fuli.util.http;
 
+import com.fuli.util.Commons;
+import com.fuli.util.json.JsonUtil;
 import com.google.common.base.Joiner;
 import okhttp3.*;
 import okhttp3.MultipartBody.Builder;
-import org.apache.commons.lang3.StringUtils;
 
 import java.io.File;
 import java.io.IOException;
@@ -129,7 +130,7 @@ public class HttpUtil {
 
     private static Request getRequestArray(String url, Map<String, ?> params, Map<String, String> header, String key, List<String> args) {
         url = addUrl(url, params);
-        if (StringUtils.isNotEmpty(key)) {
+        if (Commons.isNotEmpty(key)) {
             StringBuilder urlBuilder = new StringBuilder(url);
             for (String arg : args) {
                 urlBuilder.append("&").append(key).append("=").append(arg);
