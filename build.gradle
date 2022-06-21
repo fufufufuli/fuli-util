@@ -6,7 +6,7 @@ apply plugin: 'java'
 group 'com.fuli'
 version '1.0-SNAPSHOT'
 
-sourceCompatibility = 14
+sourceCompatibility = 15
 tasks.withType(JavaCompile) {
     options.compilerArgs += '--enable-preview'
 }
@@ -23,17 +23,17 @@ def lombok_version='1.18.12'
 def junit_launcher_version='1.6.2'
 dependencies {
     //json
-    compile "com.fasterxml.jackson.datatype:jackson-datatype-jsr310:${fasterxml_jackson_version}"
-    compile ("com.fasterxml.jackson.module:jackson-module-afterburner:${fasterxml_jackson_version}") {exclude group:"com.fasterxml.jackson.core"}
-    compile ("com.fasterxml.jackson.dataformat:jackson-dataformat-xml:${fasterxml_jackson_version}") {exclude group: "com.fasterxml.jackson.core"}
-    compile ("com.fasterxml.jackson.datatype:jackson-datatype-hppc:${fasterxml_jackson_version}") {exclude group: "com.fasterxml.jackson.core"}
-    compile ("com.fasterxml.jackson.datatype:jackson-datatype-hibernate5:${fasterxml_jackson_version}") {exclude group: "com.fasterxml.jackson.core"}
-    compile ("com.fasterxml.jackson.dataformat:jackson-dataformat-yaml:${fasterxml_jackson_version}") {exclude group: "com.fasterxml.jackson.core"}
+    implementation "com.fasterxml.jackson.datatype:jackson-datatype-jsr310:${fasterxml_jackson_version}"
+    implementation ("com.fasterxml.jackson.module:jackson-module-afterburner:${fasterxml_jackson_version}") {exclude group:"com.fasterxml.jackson.core"}
+    implementation ("com.fasterxml.jackson.dataformat:jackson-dataformat-xml:${fasterxml_jackson_version}") {exclude group: "com.fasterxml.jackson.core"}
+    implementation ("com.fasterxml.jackson.datatype:jackson-datatype-hppc:${fasterxml_jackson_version}") {exclude group: "com.fasterxml.jackson.core"}
+    implementation ("com.fasterxml.jackson.datatype:jackson-datatype-hibernate5:${fasterxml_jackson_version}") {exclude group: "com.fasterxml.jackson.core"}
+    implementation ("com.fasterxml.jackson.dataformat:jackson-dataformat-yaml:${fasterxml_jackson_version}") {exclude group: "com.fasterxml.jackson.core"}
     //
-    compile ("com.squareup.okhttp3:okhttp:${okhttp_version}")
-    compile "com.google.guava:guava:${google_guava_version}"
-    compile 'org.apache.commons:commons-lang3:3.10'
-    compile 'commons-io:commons-io:2.6'
+    implementation ("com.squareup.okhttp3:okhttp:${okhttp_version}")
+    implementation "com.google.guava:guava:${google_guava_version}"
+    implementation 'org.apache.commons:commons-lang3:3.10'
+    implementation 'commons-io:commons-io:2.6'
     //lombok
     compileOnly "org.projectlombok:lombok:${lombok_version}"
     annotationProcessor "org.projectlombok:lombok:${lombok_version}"
@@ -41,16 +41,16 @@ dependencies {
     testAnnotationProcessor "org.projectlombok:lombok:${lombok_version}"
     //compile 'org.reflections:reflections:0.9.11'
     //test
-    testCompile "org.mockito:mockito-core:2.27.0"
-    testCompile("org.junit.platform:junit-platform-launcher:${junit_launcher_version}")
-    testCompile("org.junit.platform:junit-platform-runner:${junit_launcher_version}")
+    testImplementation "org.mockito:mockito-core:2.27.0"
+    testImplementation("org.junit.platform:junit-platform-launcher:${junit_launcher_version}")
+    testImplementation("org.junit.platform:junit-platform-runner:${junit_launcher_version}")
 
 
 }
 subprojects {
     version = "1.0-SNAPSHOT"
     wrapper {
-        gradleVersion = '6.4'
+        gradleVersion = '7.2'
     }
 
     tasks.withType(JavaCompile) {
