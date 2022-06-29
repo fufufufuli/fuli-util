@@ -31,6 +31,9 @@ public class HttpUtil {
     public static final String FILE = "file";
     public static final String SOAP = "soap";
 
+    private HttpUtil() {
+    }
+
     static {
         ConnectionPool pool = new ConnectionPool(MAX_IDLE_CONNECTIONS, KEEP_ALIVE_DURATION, TimeUnit.MINUTES);
         HttpUtil.client = new OkHttpClient.Builder()
@@ -87,8 +90,8 @@ public class HttpUtil {
      * 支持多个数组
      */
     @SafeVarargs
-    public static HttpResult get(String url , List<String> keys, List<String>... args) {
-        return doRequest(getRequestArrays(url, null,null, keys, args));
+    public static HttpResult get(String url, List<String> keys, List<String>... args) {
+        return doRequest(getRequestArrays(url, null, null, keys, args));
     }
 
     @SafeVarargs
@@ -104,7 +107,7 @@ public class HttpUtil {
     @SafeVarargs
     private static Request getRequestArrays(String url, Map<String, ?> params, Map<String, String> header, List<String> keys, List<String>... args) {
         url = addUrl(url, params);
-        if (Commons.isEmpty(keys) ) {
+        if (Commons.isEmpty(keys)) {
             throw new HttpException("数组key值为空");
         } if (args==null|| keys.size() == args.length){
             throw new HttpException("数组为空或数组key的个数与数组个数不符");
